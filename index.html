@@ -10,11 +10,11 @@
         /* Custom styles for Inter font and some utility classes not directly in Tailwind */
         body {
             font-family: 'Inter', sans-serif;
-            @apply bg-gray-100 text-gray-800; /* Default light mode */
+            @apply bg-gray-950 text-gray-100; /* Deep dark background */
         }
         /* Dark mode specific styles (kept for future proofing if you re-add it, but not actively used) */
         html.dark body {
-            @apply bg-gray-900 text-gray-100;
+            @apply bg-gray-950 text-gray-100;
         }
 
         /* Custom scrollbar for table */
@@ -23,35 +23,30 @@
             height: 8px;
         }
         .table-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: #2a2a2a; /* Darker track */
             border-radius: 10px;
         }
-        html.dark .table-container::-webkit-scrollbar-track {
-            background: #333;
-        }
         .table-container::-webkit-scrollbar-thumb {
-            background: #888;
+            background: #555; /* Darker thumb */
             border-radius: 10px;
         }
         .table-container::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-        html.dark .table-container::-webkit-scrollbar-thumb {
-            background: #666;
-        }
-        html.dark .table-container::-webkit-scrollbar-thumb:hover {
-            background: #999;
+            background: #777; /* Slightly lighter on hover */
         }
 
+        /* Admin Access Section - Solid dark red background from image */
+        .admin-panel-solid {
+            @apply bg-red-950 rounded-xl shadow-xl border border-red-800; /* Very dark red with border */
+        }
 
-        /* Message Box Styling - Updated for central dialog */
+        /* Message Box Styling - Updated for central dialog to match light modal in image */
         .message-dialog-backdrop {
             position: fixed; /* Explicitly fixed positioning to viewport */
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+            background-color: rgba(0, 0, 0, 0.7); /* Slightly less opaque overlay */
             display: flex; /* Use flexbox for centering content */
             align-items: center; /* Center vertically */
             justify-content: center; /* Center horizontally */
@@ -59,8 +54,29 @@
         }
         .message-dialog {
             /* Tailwind classes for styling the dialog box itself */
-            @apply bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-sm w-full text-center;
+            @apply bg-white p-8 rounded-lg shadow-2xl max-w-sm w-11/12 text-center border border-gray-300; /* Light background, subtle border */
+            transform: scale(0.9); /* Start slightly smaller */
+            opacity: 0; /* Start invisible */
+            transition: all 0.3s ease-out; /* Smooth transition for appearance */
         }
+        .message-dialog-backdrop:not(.hidden) .message-dialog {
+            transform: scale(1); /* Scale up to normal size */
+            opacity: 1; /* Fade in */
+        }
+        .message-dialog h3 {
+            @apply text-gray-800 text-3xl font-bold mb-4; /* Darker title for light background */
+        }
+        .message-dialog h3.text-green-400 { @apply text-green-600; } /* Keep success green */
+        .message-dialog h3.text-red-400 { @apply text-red-600; }   /* Keep error red */
+        .message-dialog h3.text-emerald-400 { @apply text-gray-800; } /* Info title dark */
+
+        .message-dialog p {
+            @apply text-gray-700 text-lg mb-6; /* Darker message text for light background */
+        }
+        .message-dialog button {
+            @apply px-8 py-3 rounded-full shadow-lg font-semibold transition duration-200 ease-in-out; /* Pill-shaped buttons, smoother hover */
+        }
+
 
         /* Confirmation Dialog Styling (same as message dialog for consistency) */
         .confirm-dialog-backdrop {
@@ -69,14 +85,30 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.7);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 9999;
         }
         .confirm-dialog {
-            @apply bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-sm w-full text-center;
+            @apply bg-white p-8 rounded-lg shadow-2xl max-w-sm w-11/12 text-center border border-gray-300;
+            transform: scale(0.9);
+            opacity: 0;
+            transition: all 0.3s ease-out;
+        }
+        .confirm-dialog-backdrop:not(.hidden) .confirm-dialog {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .confirm-dialog h3 {
+            @apply text-gray-800 text-3xl font-bold mb-4;
+        }
+        .confirm-dialog p {
+            @apply text-gray-700 text-lg mb-6;
+        }
+        .confirm-dialog button {
+            @apply px-8 py-3 rounded-full shadow-lg font-semibold transition duration-200 ease-in-out;
         }
 
         /* Admin Settings Modal Styling */
@@ -86,23 +118,26 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7); /* Darker overlay for settings */
+            background-color: rgba(0, 0, 0, 0.9); /* Darker overlay for settings */
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 10000; /* Even higher z-index */
         }
         .admin-settings-modal {
-            @apply bg-white dark:bg-gray-900 p-8 rounded-lg shadow-2xl max-w-2xl w-11/12 text-left overflow-y-auto max-h-[90vh];
+            @apply bg-gray-800 p-8 rounded-lg shadow-2xl max-w-2xl w-11/12 text-left overflow-y-auto max-h-[90vh] border-2 border-emerald-600; /* Added stronger border */
         }
         .admin-settings-modal h3 {
-            @apply text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100;
+            @apply text-gray-100 text-3xl font-bold mb-6; /* Larger title */
+        }
+        .admin-settings-modal h4 {
+            @apply text-emerald-400 text-xl font-semibold mb-4; /* Consistent sub-heading style */
         }
         .admin-settings-modal pre {
-            @apply bg-gray-100 dark:bg-gray-700 p-4 rounded-md text-sm overflow-x-auto;
+            @apply bg-gray-700 p-4 rounded-md text-sm overflow-x-auto;
         }
         .admin-settings-modal button {
-            @apply mt-6 px-6 py-3 bg-blue-600 text-white font-semibold rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out;
+            @apply mt-6 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-md shadow-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out;
         }
     </style>
 </head>
@@ -113,7 +148,7 @@
             <h3 id="messageDialogTitle">Notification</h3>
             <p id="messageDialogMessage"></p>
             <div class="message-dialog-buttons">
-                <button id="messageDialogCloseBtn" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">Close</button>
+                <button id="messageDialogCloseBtn" class="bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500">OK</button>
             </div>
         </div>
     </div>
@@ -123,9 +158,9 @@
         <div id="confirmDialog" class="confirm-dialog">
             <h3 id="confirmDialogTitle">Confirm Action</h3>
             <p id="confirmDialogMessage">Are you sure you want to proceed?</p>
-            <div class="confirm-dialog-buttons">
-                <button id="confirmYesBtn" class="px-6 py-3 bg-red-600 text-white font-semibold rounded-md shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out">Yes</button>
-                <button id="confirmNoBtn" class="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-md shadow-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">No</button>
+            <div class="confirm-dialog-buttons flex justify-center space-x-4">
+                <button id="confirmYesBtn" class="bg-red-600 text-white hover:bg-red-700 focus:ring-red-500">Yes</button>
+                <button id="confirmNoBtn" class="bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500">No</button>
             </div>
         </div>
     </div>
@@ -134,128 +169,178 @@
     <div id="adminSettingsModalBackdrop" class="admin-settings-modal-backdrop hidden">
         <div id="adminSettingsModal" class="admin-settings-modal">
             <h3 id="adminSettingsTitle">Admin Settings</h3>
+            
+            <!-- Add New Employee Form -->
+            <div class="mb-8 p-4 border border-gray-700 rounded-md">
+                <h4 class="text-xl font-semibold mb-4 text-gray-200">Add New Employee</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="newEmployeeId" class="block text-sm font-medium text-gray-300 mb-1">Employee ID</label>
+                        <input type="text" id="newEmployeeId" placeholder="e.g., AT0005" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-gray-100">
+                    </div>
+                    <div>
+                        <label for="newEmployeeName" class="block text-sm font-medium text-gray-300 mb-1">Employee Name</label>
+                        <input type="text" id="newEmployeeName" placeholder="e.g., John Doe" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-gray-100">
+                    </div>
+                </div>
+                <button id="addEmployeeBtn" class="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-md shadow-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out">Add Employee</button>
+            </div>
+
+            <!-- Manage Existing Employees Table -->
             <div class="mb-4">
-                <p class="text-gray-700 dark:text-gray-300 mb-2 font-semibold">Predefined Employee List (Read-Only via UI):</p>
-                <pre id="employeeListDisplay" class="text-gray-800 dark:text-gray-200"></pre>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">To modify this list, please edit the 'predefinedTeamMembers' array directly in the application's HTML code.</p>
+                <h4 class="text-xl font-semibold mb-4 text-gray-200">Manage Existing Employees</h4>
+                <div class="overflow-x-auto rounded-lg shadow-md max-h-60">
+                    <table class="min-w-full divide-y divide-gray-700">
+                        <thead class="bg-gray-700 sticky top-0">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">ID</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="manageEmployeesTableBody" class="bg-gray-800 divide-y divide-gray-700">
+                            <!-- Employee list will be dynamically inserted here -->
+                            <tr><td colspan="3" class="px-6 py-4 text-center text-gray-400">Loading employees...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <button id="closeAdminSettingsBtn">Close Settings</button>
         </div>
     </div>
 
 
-    <div class="max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+    <div class="max-w-7xl mx-auto bg-gray-700 p-6 rounded-xl shadow-xl border border-gray-600"> <!-- Main container with enhanced styling -->
         <!-- Header -->
         <header class="mb-8 text-center relative">
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-indigo-700 dark:text-indigo-400 mb-2">Employee Extended Hours Tracker</h1>
-            <p class="text-lg text-gray-600 dark:text-gray-300">Efficiently log and track employee extended working hours.</p>
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-emerald-500 mb-2">Employee Extended Hours Tracker</h1>
+            <p class="text-lg text-gray-400">Efficiently log and track employee extended working hours.</p>
         </header>
 
         <!-- User ID Display -->
-        <div class="mb-4 text-center text-sm text-gray-500 dark:text-gray-400">
-            Your Firebase User ID: <span id="currentUserIdDisplay" class="font-semibold text-gray-700 dark:text-gray-300">Loading...</span>
+        <div class="mb-6 p-4 rounded-lg bg-gray-600 text-center text-sm text-gray-300 shadow-inner">
+            User ID: <span id="currentUserIdDisplay" class="font-semibold text-gray-100">Loading...</span>
+            <div class="absolute top-4 right-4 flex items-center space-x-2">
+                <span class="text-gray-300">Dark Mode</span>
+                <label class="switch">
+                    <input type="checkbox" id="darkModeToggle" checked> <!-- Checked by default for dark mode -->
+                    <span class="slider round"></span>
+                </label>
+            </div>
         </div>
 
         <!-- Control Buttons: Admin Mode and Admin Settings -->
-        <section class="mb-8 flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4">
-            <button id="toggleAdminModeBtn" class="px-6 py-3 bg-yellow-500 text-white font-semibold rounded-md shadow-lg hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition duration-150 ease-in-out hidden">
+        <section class="mb-10 flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4 p-4 rounded-xl">
+            <button id="toggleAdminModeBtn" class="px-6 py-3 bg-yellow-600 text-white font-semibold rounded-lg shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all duration-300 ease-in-out hidden">
                 Enable Admin Mode
             </button>
-            <button id="adminSettingsBtn" class="px-6 py-3 bg-purple-600 text-white font-semibold rounded-md shadow-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out hidden">
+            <button id="adminSettingsBtn" class="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-300 ease-in-out hidden">
                 Admin Settings
             </button>
         </section>
 
-        <!-- Admin Access Section -->
-        <section id="adminAccessSection" class="mb-10 p-6 bg-red-50 dark:bg-red-900 rounded-lg shadow-md">
-            <h2 class="text-2xl font-bold text-red-800 dark:text-red-300 mb-6">Admin Access</h2>
+        <!-- Admin Access Section - Solid dark red background from image -->
+        <section id="adminAccessSection" class="mb-10 p-6 admin-panel-solid">
+            <h2 class="text-2xl font-bold text-red-300 mb-6">Admin Access</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                 <div>
-                    <label for="adminIdInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Admin Employee ID</label>
-                    <input type="text" id="adminIdInput" placeholder="Enter Admin ID" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                    <label for="adminIdInput" class="block text-sm font-medium text-gray-200 mb-1">Admin Employee ID</label>
+                    <input type="text" id="adminIdInput" placeholder="Enter Admin ID" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 bg-gray-200 text-gray-900">
                 </div>
                 <div>
-                    <label for="adminPasswordInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Admin Password</label>
-                    <input type="password" id="adminPasswordInput" placeholder="Enter Password" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                    <label for="adminPasswordInput" class="block text-sm font-medium text-gray-200 mb-1">Admin Password</label>
+                    <input type="password" id="adminPasswordInput" placeholder="Enter Password" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 bg-gray-200 text-gray-900">
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <button id="adminLoginBtn" class="flex-1 px-6 py-3 bg-red-600 text-white font-semibold rounded-md shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out">Admin Login</button>
-                    <button id="adminLogoutBtn" class="flex-1 px-6 py-3 bg-gray-500 text-white font-semibold rounded-md shadow-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition duration-150 ease-in-out" disabled>Admin Logout</button>
+                    <button id="adminLoginBtn" class="flex-1 px-6 py-3 bg-red-700 text-white font-semibold rounded-lg shadow-sm hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300 ease-in-out">Admin Login</button>
+                    <button id="adminLogoutBtn" class="flex-1 px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-300 ease-in-out" disabled>Admin Logout</button>
                 </div>
             </div>
-            <p id="adminStatus" class="mt-4 text-center text-lg font-medium text-gray-700 dark:text-gray-300"></p>
+            <p id="adminStatus" class="mt-4 text-center text-lg font-medium text-red-200"></p>
         </section>
 
         <!-- Employee Login/Logout Section -->
-        <section class="mb-10 p-6 bg-indigo-50 dark:bg-indigo-900 rounded-lg shadow-md">
-            <h2 class="text-2xl font-bold text-indigo-800 dark:text-indigo-300 mb-6">Employee Login/Logout</h2>
+        <section class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800">
+            <h2 class="text-2xl font-bold text-emerald-400 mb-6">Employee Login/Logout</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                 <div>
-                    <label for="loginMemberId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Employee ID</label>
-                    <input type="text" id="loginMemberId" placeholder="Enter your Employee ID" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                    <label for="employeeSelect" class="block text-sm font-medium text-gray-300 mb-1">Select Employee</label>
+                    <select id="employeeSelect" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-gray-200 text-gray-900">
+                        <option value="">-- Select an Employee --</option>
+                        <!-- Employee options will be dynamically inserted here -->
+                    </select>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <button id="loginBtn" class="flex-1 px-6 py-3 bg-green-600 text-white font-semibold rounded-md shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">Login</button>
-                    <button id="logoutBtn" class="flex-1 px-6 py-3 bg-red-600 text-white font-semibold rounded-md shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out" disabled>Logout</button>
+                    <button id="loginBtn" class="flex-1 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 ease-in-out">Login</button>
+                    <button id="logoutBtn" class="flex-1 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300 ease-in-out" disabled>Logout</button>
                 </div>
             </div>
-            <p id="employeeLoginStatus" class="mt-4 text-center text-lg font-medium text-gray-700 dark:text-gray-300"></p>
+            <p id="employeeLoginStatus" class="mt-4 text-center text-lg font-medium text-gray-300"></p>
         </section>
 
         <!-- Filter Section -->
-        <section class="mb-10 p-6 bg-blue-50 dark:bg-blue-900 rounded-lg shadow-md">
-            <h2 class="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-6">Filter Entries</h2>
+        <section id="filterEntriesSection" class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800 hidden">
+            <h2 class="text-2xl font-bold text-emerald-400 mb-6">Filter Entries</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label for="filterStartDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From Date</label>
-                    <input type="date" id="filterStartDate" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                    <label for="filterStartDate" class="block text-sm font-medium text-gray-300 mb-1">From Date</label>
+                    <input type="date" id="filterStartDate" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-gray-200 text-gray-900">
                 </div>
                 <div>
-                    <label for="filterEndDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To Date</label>
-                    <input type="date" id="filterEndDate" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                    <label for="filterEndDate" class="block text-sm font-medium text-gray-300 mb-1">To Date</label>
+                    <input type="date" id="filterEndDate" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-gray-200 text-gray-900">
                 </div>
             </div>
             <div class="mt-6 flex justify-end space-x-4">
-                <button id="applyFilterBtn" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">Apply Filter</button>
-                <button id="clearFilterBtn" class="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-md shadow-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">Clear Filter</button>
+                <button id="applyFilterBtn" class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 ease-in-out">Apply Filter</button>
+                <button id="clearFilterBtn" class="px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-300 ease-in-out">Clear Filter</button>
             </div>
         </section>
 
         <!-- Table to Display Entries -->
-        <section class="mb-10">
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">Extended Hours Log</h2>
-            <div class="overflow-x-auto rounded-lg shadow-md table-container max-h-96">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-700 sticky top-0">
+        <section class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800">
+            <h2 class="text-2xl font-bold text-gray-100 mb-6">Extended Hours Log</h2>
+            <div class="overflow-x-auto rounded-lg shadow-md table-container max-h-96 border border-gray-700">
+                <table class="min-w-full divide-y divide-gray-700">
+                    <thead class="bg-gray-700 sticky top-0">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider delete-column-header hidden">
-                                <input type="checkbox" id="selectAllCheckboxes" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider delete-column-header hidden">
+                                <input type="checkbox" id="selectAllCheckboxes" class="form-checkbox h-4 w-4 text-emerald-500 transition duration-150 ease-in-out rounded">
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Employee Name</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Employee ID</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Start Time</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">End Time</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total Hours</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Employee Name</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Employee ID</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Start Time</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">End Time</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Total Hours</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Overtime (hrs)</th>
                         </tr>
                     </thead>
-                    <tbody id="entriesTableBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody id="entriesTableBody" class="divide-y divide-gray-700">
                         <!-- Entries will be dynamically inserted here -->
                     </tbody>
                 </table>
             </div>
             <div class="mt-6 flex justify-end">
-                <button id="deleteSelectedBtn" class="px-6 py-3 bg-red-600 text-white font-semibold rounded-md shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out hidden">Delete Selected Entries</button>
-                <button id="exportCsvBtn" class="px-6 py-3 bg-green-600 text-white font-semibold rounded-md shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out ml-4 hidden">Export to CSV</button>
+                <button id="deleteSelectedBtn" class="px-6 py-3 bg-red-700 text-white font-semibold rounded-lg shadow-sm hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600 transition-all duration-300 ease-in-out hidden">Delete Selected Entries</button>
+                <button id="exportCsvBtn" class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 ease-in-out ml-4 hidden">Export to CSV</button>
             </div>
         </section>
 
         <!-- Summary Section -->
-        <section class="mb-10 p-6 bg-purple-50 dark:bg-purple-900 rounded-lg shadow-md">
-            <h2 class="text-2xl font-bold text-purple-800 dark:text-purple-300 mb-6">Summary: Total Hours Per Employee</h2>
+        <section class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800">
+            <h2 class="text-2xl font-bold text-emerald-400 mb-6">Summary: Total Hours Per Employee</h2>
             <div id="summarySection" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 <!-- Summary will be dynamically inserted here -->
-                <p class="text-gray-600 dark:text-gray-400 col-span-full" id="noSummaryMessage">No data to display summary.</p>
+                <p class="text-gray-400 col-span-full" id="noSummaryMessage">No data to display summary.</p>
+            </div>
+        </section>
+
+        <!-- Monthly Overtime Report Section -->
+        <section class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800">
+            <h2 class="text-2xl font-bold text-emerald-400 mb-6">Monthly Overtime Report</h2>
+            <div id="monthlyOvertimeReport" class="space-y-4">
+                <p class="text-gray-400" id="noMonthlyReportMessage">No overtime data to display for any month.</p>
             </div>
         </section>
     </div>
@@ -264,7 +349,7 @@
         // Firebase Imports (required for cloud database)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDocs, where } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
         // Firebase Initialization Variables
         let app;
@@ -273,29 +358,33 @@
         let currentUserId = null; // Store Firebase Authentication User ID
 
         // Your Firebase Project Configuration
+        // !!! IMPORTANT: These values have been replaced with your actual Firebase project details.
+        // If you need to change them again, please get the latest config from your Firebase Console.
         const firebaseConfig = {
-          apiKey: "AIzaSyBQkFyn2bahuD4jp6Z-1CTU2qg2sDwWTPQ",
-          authDomain: "team-track-fa1b7.firebaseapp.com",
-          projectId: "team-track-fa1b7",
-          storageBucket: "team-track-fa1b7.firebasestorage.app",
-          messagingSenderId: "764858028770",
-          appId: "1:764858028770:web:6fcdcfcd921401c36284bb",
-          measurementId: "G-3F59SXF215"
+          apiKey: "AIzaSyBSHQNO1us-HL1bnFUzefkSnhbwdESVhME",
+          authDomain: "admin-97140.firebaseapp.com",
+          projectId: "admin-97140",
+          storageBucket: "admin-97140.firebasestorage.app",
+          messagingSenderId: "699315429448",
+          appId: "1:699315429448:web:17ef8cdf365f5ecd29387d",
+          measurementId: "G-SZBZ0VLFVC"
         };
         // Use your projectId as the appId for the Firestore collection path
         const appId = firebaseConfig.projectId;
 
         // --- EMPLOYEE & ADMIN ACCESS CONFIGURATION ---
-        // Predefined list of employees with their IDs and Names.
-        // You MUST populate this list with all your team members.
-        const predefinedTeamMembers = [
-            { id: "AT0001", name: "Alice Johnson" },
-            { id: "AT0002", name: "Bob Williams" },
-            { id: "AT0085", name: "rushi" }, // This is the admin ID and name
-            { id: "AT0003", name: "Charlie Brown" },
-            { id: "AT0004", name: "Diana Prince" }
-            // Add more team members here: { id: "YOUR_EMPLOYEE_ID", name: "Employee Name" },
-        ];
+        // This array will now be populated dynamically from Firestore
+        let predefinedTeamMembers = [
+            { id: "AT024", name: "Aryan" },
+            { id: "AT0238", name: "Aditya" },
+            { id: "AT0212", name: "Shashank" },
+            { id: "AT0215", name: "Samruddhi" },
+            { id: "AT027", name: "Shabdali" },
+            { id: "AT0085", name: "Rushikesh" },
+            { id: "AT0244", name: "Abhijeet" },
+            { id: "AT0176", name: "Rohan" },
+            { id: "AT0000", name: "Vishal" } // Added Vishal with a placeholder ID, assuming it was missing
+        ]; 
 
         // The Employee ID that will have admin privileges
         const ADMIN_EMPLOYEE_ID = "AT0085"; 
@@ -308,6 +397,9 @@
         let extendedHoursEntries = [];
         let selectedEntryIds = new Set(); // To store IDs of selected entries for multi-delete
 
+        // Overtime threshold in hours (e.g., anything above this is overtime)
+        const OVERTIME_THRESHOLD_HOURS = 9;
+
         // State variable for current logged-in employee details (for regular users)
         let currentLoggedInEmployee = null; // Stores { id: "AT0085", name: "rushi", loginTime: Date object }
 
@@ -318,7 +410,7 @@
         let isAdminMode = false;
 
         // DOM Elements - Employee Login
-        const loginMemberIdInput = document.getElementById('loginMemberId');
+        const employeeSelect = document.getElementById('employeeSelect'); // Changed to select element
         const loginBtn = document.getElementById('loginBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const employeeLoginStatus = document.getElementById('employeeLoginStatus');
@@ -337,10 +429,14 @@
         const exportCsvBtn = document.getElementById('exportCsvBtn');
         const filterStartDateInput = document.getElementById('filterStartDate');
         const filterEndDateInput = document.getElementById('filterEndDate');
-        const applyFilterBtn = document.getElementById('applyFilterBtn');
+        const applyFilterBtn = document.getElementById('applyFilterBtn'); 
         const clearFilterBtn = document.getElementById('clearFilterBtn');
         const noSummaryMessage = document.getElementById('noSummaryMessage');
         const currentUserIdDisplay = document.getElementById('currentUserIdDisplay');
+        const monthlyOvertimeReportSection = document.getElementById('monthlyOvertimeReport');
+        const noMonthlyReportMessage = document.getElementById('noMonthlyReportMessage');
+        const filterEntriesSection = document.getElementById('filterEntriesSection'); 
+
 
         const toggleAdminModeBtn = document.getElementById('toggleAdminModeBtn');
         const adminSettingsBtn = document.getElementById('adminSettingsBtn');
@@ -352,14 +448,18 @@
         // Admin Settings Modal Elements
         const adminSettingsModalBackdrop = document.getElementById('adminSettingsModalBackdrop');
         const closeAdminSettingsBtn = document.getElementById('closeAdminSettingsBtn');
-        const employeeListDisplay = document.getElementById('employeeListDisplay');
+        const newEmployeeIdInput = document.getElementById('newEmployeeId');
+        const newEmployeeNameInput = document.getElementById('newEmployeeName');
+        const addEmployeeBtn = document.getElementById('addEmployeeBtn');
+        const manageEmployeesTableBody = document.getElementById('manageEmployeesTableBody');
+
 
         // Confirmation Dialog Elements
         const confirmDialogBackdrop = document.getElementById('confirmDialogBackdrop');
         const confirmDialogTitle = document.getElementById('confirmDialogTitle');
         const confirmDialogMessage = document.getElementById('confirmDialogMessage');
         const confirmYesBtn = document.getElementById('confirmYesBtn');
-        const confirmNoBtn = document.getElementById('confirmNoBtn');
+        const confirmNoBtn = document.getElementById('confirmNo');
 
         // Message Dialog Elements
         const messageDialogBackdrop = document.getElementById('messageDialogBackdrop');
@@ -367,25 +467,27 @@
         const messageDialogMessage = document.getElementById('messageDialogMessage');
         const messageDialogCloseBtn = document.getElementById('messageDialogCloseBtn');
 
+        // Dark Mode Toggle Element
+        const darkModeToggle = document.getElementById('darkModeToggle');
+
 
         // Function to display messages in a custom centered dialog
         function showMessage(message, type = 'info') {
             messageDialogMessage.textContent = message;
+            // Reset classes first
+            messageDialogTitle.classList.remove('text-green-600', 'text-red-600', 'text-gray-800'); 
             if (type === 'success') {
                 messageDialogTitle.textContent = "Success!";
-                messageDialogTitle.classList.add('text-green-600');
-                messageDialogTitle.classList.remove('text-red-600', 'text-blue-600');
+                messageDialogTitle.classList.add('text-green-600'); 
             } else if (type === 'error') {
                 messageDialogTitle.textContent = "Error!";
-                messageDialogTitle.classList.add('text-red-600');
-                messageDialogTitle.classList.remove('text-green-600', 'text-blue-600');
+                messageDialogTitle.classList.add('text-red-600'); 
             } else {
                 messageDialogTitle.textContent = "Notification";
-                messageDialogTitle.classList.add('text-blue-600');
-                messageDialogTitle.classList.remove('text-green-600', 'text-red-600');
+                messageDialogTitle.classList.add('text-gray-800'); 
             }
             messageDialogBackdrop.classList.remove('hidden');
-            console.log(`[Message: ${type}] ${message}`); // Log messages to console for debugging
+            console.log(`[Message: ${type}] ${message}`); 
         }
 
         // Function to hide custom message dialog
@@ -394,14 +496,16 @@
         }
 
         // Event listener for message dialog close button
-        messageDialogCloseBtn.addEventListener('click', hideMessageDialog);
+        if(messageDialogCloseBtn) {
+            messageDialogCloseBtn.addEventListener('click', hideMessageDialog);
+        }
 
 
         // Function to show custom confirmation dialog
         let currentConfirmCallback = null;
         function showConfirmDialog(message, onConfirmCallback) {
             confirmDialogMessage.textContent = message;
-            confirmDialogBackdrop.classList.remove('hidden');
+            confirmDialogBackdrop.classList.remove('hidden'); 
             currentConfirmCallback = onConfirmCallback;
         }
 
@@ -412,19 +516,23 @@
         }
 
         // Event listeners for confirmation dialog buttons
-        confirmYesBtn.addEventListener('click', () => {
-            if (currentConfirmCallback) {
-                currentConfirmCallback(true);
-            }
-            hideConfirmDialog();
-        });
+        if(confirmYesBtn) {
+            confirmYesBtn.addEventListener('click', () => {
+                if (currentConfirmCallback) {
+                    currentConfirmCallback(true);
+                }
+                hideConfirmDialog();
+            });
+        }
 
-        confirmNoBtn.addEventListener('click', () => {
-            if (currentConfirmCallback) {
-                currentConfirmCallback(false);
-            }
-            hideConfirmDialog();
-        });
+        if(confirmNoBtn) {
+            confirmNoBtn.addEventListener('click', () => {
+                if (currentConfirmCallback) {
+                    currentConfirmCallback(false);
+                }
+                hideConfirmDialog();
+            });
+        }
 
 
         // Function to load local preferences from Local Storage (not data)
@@ -442,8 +550,15 @@
                         };
                         console.log("Local state: Logged in employee loaded.", currentLoggedInEmployee);
                     }
-                    isAdminMode = parsedData.isAdminMode || false; // Load admin mode state
-                    isAdminLoggedIn = parsedData.isAdminLoggedIn || false; // Load admin login state
+                    isAdminMode = parsedData.isAdminMode || false; 
+                    isAdminLoggedIn = parsedData.isAdminLoggedIn || false; 
+                    // Load dark mode preference
+                    const savedDarkMode = localStorage.getItem('darkModeEnabled');
+                    if (darkModeToggle) {
+                        darkModeToggle.checked = (savedDarkMode === 'true');
+                        applyDarkMode(darkModeToggle.checked);
+                    }
+
                     console.log("Local state: Admin mode?", isAdminMode, "Admin logged in?", isAdminLoggedIn);
 
                 } catch (e) {
@@ -458,9 +573,14 @@
                 currentLoggedInEmployee = null;
                 isAdminMode = false;
                 isAdminLoggedIn = false;
+                // Default to dark mode if no preference is found
+                if (darkModeToggle) {
+                    darkModeToggle.checked = true;
+                    applyDarkMode(true);
+                }
             }
-            updateLoginButtons(); // Update button states after loading local state
-            updateAdminUI(); // Update admin specific UI
+            updateLoginButtons(); 
+            updateAdminUI(); 
         }
 
         // Function to save local preferences to Local Storage
@@ -469,12 +589,13 @@
                 currentLoggedInEmployee: currentLoggedInEmployee ? {
                     id: currentLoggedInEmployee.id,
                     name: currentLoggedInEmployee.name,
-                    loginTime: currentLoggedInEmployee.loginTime.toISOString() // Store Date as ISO string
+                    loginTime: currentLoggedInEmployee.loginTime.toISOString() 
                 } : null,
-                isAdminMode: isAdminMode, // Save admin mode state
-                isAdminLoggedIn: isAdminLoggedIn // Save admin login state
+                isAdminMode: isAdminMode, 
+                isAdminLoggedIn: isAdminLoggedIn 
             };
             localStorage.setItem('extendedHoursTrackerLocalState', JSON.stringify(dataToSave));
+            localStorage.setItem('darkModeEnabled', darkModeToggle ? darkModeToggle.checked : false); // Save dark mode preference
             console.log("Local state saved to localStorage.", dataToSave);
         }
 
@@ -490,15 +611,15 @@
                 console.warn("End date is earlier than start date for calculation. Returning 0 hours.");
                 return '0.00';
             }
-            const totalHours = diffMs / (1000 * 60 * 60); // Convert milliseconds to hours
-            return totalHours.toFixed(2); // Round to 2 decimal places
+            const totalHours = diffMs / (1000 * 60 * 60); 
+            return totalHours.toFixed(2); 
         }
 
         // Function to render the table with entries
         function renderTable(entriesToDisplay = extendedHoursEntries) {
-            entriesTableBody.innerHTML = ''; // Clear existing entries
-            selectedEntryIds.clear(); // Clear selections on re-render
-            if (selectAllCheckboxes) selectAllCheckboxes.checked = false; // Uncheck select all
+            entriesTableBody.innerHTML = ''; 
+            selectedEntryIds.clear(); 
+            if (selectAllCheckboxes) selectAllCheckboxes.checked = false; 
 
             const deleteColumnHeader = document.querySelector('.delete-column-header');
             
@@ -510,28 +631,29 @@
 
             if (entriesToDisplay.length === 0) {
                 const noDataRow = document.createElement('tr');
-                noDataRow.innerHTML = `<td colspan="7" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">No entries to display.</td>`;
+                noDataRow.innerHTML = `<td colspan="8" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-400">No entries to display.</td>`;
                 entriesTableBody.appendChild(noDataRow);
                 return;
             }
 
             entriesToDisplay.forEach((entry, index) => {
                 const row = document.createElement('tr');
-                row.className = index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700';
+                row.className = index % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800'; /* Adjusted for new section background */
                 row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100 ${isAdminMode ? '' : 'hidden'}">
-                        <input type="checkbox" data-id="${entry.id}" class="entry-checkbox form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100 ${isAdminMode ? '' : 'hidden'}">
+                        <input type="checkbox" data-id="${entry.id}" class="entry-checkbox form-checkbox h-4 w-4 text-emerald-500 transition duration-150 ease-in-out rounded">
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">${entry.memberName}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${entry.employeeId}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${new Date(entry.date).toLocaleDateString('en-GB')}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${entry.startTime}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${entry.endTime}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${entry.totalHours}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">${entry.memberName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${entry.employeeId}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${new Date(entry.date).toLocaleDateString('en-GB')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${entry.startTime}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${entry.endTime}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${entry.totalHours.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${entry.overtimeHours.toFixed(2)}</td>
                 `;
                 entriesTableBody.appendChild(row);
 
-                // Add event listener for individual checkboxes
+                // Add event listener for individual checkboxes (for multi-delete)
                 const checkbox = row.querySelector('.entry-checkbox');
                 if (checkbox) {
                     checkbox.addEventListener('change', (e) => {
@@ -544,7 +666,7 @@
                     });
                 }
             });
-            updateDeleteSelectedButtonVisibility(); // Update button visibility after rendering
+            updateDeleteSelectedButtonVisibility(); 
         }
 
         // Function to toggle individual entry selection
@@ -578,34 +700,35 @@
         }
 
         // Event listener for "Delete Selected Entries" button
-        deleteSelectedBtn.addEventListener('click', () => {
-            if (selectedEntryIds.size === 0) {
-                showMessage("No entries selected for deletion.", "info");
-                return;
-            }
-
-            showConfirmDialog(`Are you sure you want to delete ${selectedEntryIds.size} selected entries?`, async (confirmed) => {
-                if (confirmed) {
-                    const idsToDelete = Array.from(selectedEntryIds);
-                    let deletedCount = 0;
-                    for (const id of idsToDelete) {
-                        try {
-                            const docRef = doc(db, `artifacts/${appId}/public/data/extendedHours`, id);
-                            await deleteDoc(docRef);
-                            deletedCount++;
-                        } catch (e) {
-                            console.error(`Error deleting document ${id}:`, e);
-                            showMessage(`Failed to delete entry ${id}. Check console.`, "error");
-                        }
-                    }
-                    showMessage(`${deletedCount} entries successfully deleted!`, "success");
-                    selectedEntryIds.clear(); // Clear selections
-                    // onSnapshot will re-render the table automatically
-                } else {
-                    showMessage("Deletion cancelled.", "info");
+        if(deleteSelectedBtn) {
+            deleteSelectedBtn.addEventListener('click', () => {
+                if (selectedEntryIds.size === 0) {
+                    showMessage("No entries selected for deletion.", "info");
+                    return;
                 }
+
+                showConfirmDialog(`Are you sure you want to delete ${selectedEntryIds.size} selected entries?`, async (confirmed) => {
+                    if (confirmed) {
+                        const idsToDelete = Array.from(selectedEntryIds);
+                        let deletedCount = 0;
+                        for (const id of idsToDelete) {
+                            try {
+                                const docRef = doc(db, `artifacts/${appId}/public/data/extendedHours`, id);
+                                await deleteDoc(docRef);
+                                deletedCount++;
+                            } catch (e) {
+                                console.error(`Error deleting document ${id}:`, e);
+                                showMessage(`Failed to delete entry ${id}. Check console.`, "error");
+                            }
+                        }
+                        showMessage(`${deletedCount} entries successfully deleted!`, "success");
+                        selectedEntryIds.clear(); 
+                    } else {
+                        showMessage("Deletion cancelled.", "info");
+                    }
+                });
             });
-        });
+        }
 
 
         // Function to update the summary section
@@ -613,13 +736,19 @@
             const summary = {};
             entriesForSummary.forEach(entry => {
                 const hours = parseFloat(entry.totalHours);
+                const overtime = parseFloat(entry.overtimeHours || 0); 
+
                 if (!isNaN(hours)) {
-                    // Summarize by employee name
-                    summary[entry.memberName] = (summary[entry.memberName] || 0) + hours;
+                    // Summarize total hours by employee name
+                    summary[entry.memberName] = summary[entry.memberName] || { total: 0, overtime: 0 };
+                    summary[entry.memberName].total += hours;
+                    if (!isNaN(overtime)) {
+                        summary[entry.memberName].overtime += overtime;
+                    }
                 }
             });
 
-            summarySection.innerHTML = ''; // Clear existing summary
+            summarySection.innerHTML = ''; 
 
             if (Object.keys(summary).length === 0) {
                 noSummaryMessage.classList.remove('hidden');
@@ -632,170 +761,250 @@
 
             for (const member in summary) {
                 const card = document.createElement('div');
-                card.className = 'bg-white dark:bg-gray-700 p-4 rounded-lg shadow flex flex-col items-center justify-center';
+                card.className = 'bg-gray-800 p-4 rounded-lg shadow flex flex-col items-center justify-center'; /* Adjusted for new section background */
                 card.innerHTML = `
-                    <p class="text-lg font-semibold text-purple-700 dark:text-purple-300">${member}</p>
-                    <p class="text-2xl font-bold text-purple-900 dark:text-purple-200">${summary[member].toFixed(2)} hrs</p>
+                    <p class="text-lg font-semibold text-emerald-300">${member}</p>
+                    <p class="text-xl text-emerald-100">Total: ${summary[member].total.toFixed(2)} hrs</p>
+                    <p class="text-xl text-emerald-100">Overtime: ${summary[member].overtime.toFixed(2)} hrs</p>
                 `;
                 summarySection.appendChild(card);
             }
         }
 
+        // Function to update the monthly overtime report section
+        function updateMonthlyOvertimeReport(entriesForReport = extendedHoursEntries) {
+            const monthlyReport = {}; 
+
+            entriesForReport.forEach(entry => {
+                const date = new Date(entry.date);
+                const yearMonth = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`; 
+                const overtime = parseFloat(entry.overtimeHours || 0);
+
+                if (!isNaN(overtime) && overtime > 0) {
+                    if (!monthlyReport[yearMonth]) {
+                        monthlyReport[yearMonth] = {};
+                    }
+                    monthlyReport[yearMonth][entry.memberName] = (monthlyReport[yearMonth][entry.memberName] || 0) + overtime;
+                }
+            });
+
+            monthlyOvertimeReportSection.innerHTML = ''; 
+
+            const sortedMonths = Object.keys(monthlyReport).sort().reverse(); 
+
+            if (sortedMonths.length === 0) {
+                noMonthlyReportMessage.classList.remove('hidden');
+                monthlyOvertimeReportSection.appendChild(noMonthlyReportMessage);
+                return;
+            } else {
+                noMonthlyReportMessage.classList.add('hidden');
+            }
+
+            sortedMonths.forEach(yearMonth => {
+                const monthCard = document.createElement('div');
+                monthCard.className = 'bg-gray-800 p-4 rounded-lg shadow'; /* Adjusted for new section background */
+                monthCard.innerHTML = `<h4 class="text-xl font-semibold text-emerald-400 mb-2">${yearMonth} Overtime</h4>`;
+                
+                const ul = document.createElement('ul');
+                ul.className = 'list-disc list-inside text-gray-200'; 
+
+                const sortedEmployees = Object.keys(monthlyReport[yearMonth]).sort();
+                sortedEmployees.forEach(employeeName => {
+                    const li = document.createElement('li');
+                    li.textContent = `${employeeName}: ${monthlyReport[yearMonth][employeeName].toFixed(2)} hrs`;
+                    ul.appendChild(li);
+                });
+                monthCard.appendChild(ul);
+                monthlyOvertimeReportSection.appendChild(monthCard);
+            });
+        }
+
+        // Function to populate the employee dropdown
+        function populateEmployeeDropdown() {
+            if (!employeeSelect) return; // Safety check
+
+            employeeSelect.innerHTML = '<option value="">-- Select an Employee --</option>'; // Clear existing options and add default
+
+            // Sort team members alphabetically by name
+            const sortedMembers = [...predefinedTeamMembers].sort((a, b) => a.name.localeCompare(b.name));
+
+            sortedMembers.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.id;
+                // Display name and ID
+                option.textContent = `${member.name} (${member.id})`; 
+                employeeSelect.appendChild(option);
+            });
+
+            // If an employee is already logged in, select them in the dropdown
+            if (currentLoggedInEmployee) {
+                employeeSelect.value = currentLoggedInEmployee.id;
+            }
+        }
+
+
         // Function to update the state of employee login/logout buttons and status message
         function updateLoginButtons() {
             if (currentLoggedInEmployee) {
-                loginMemberIdInput.value = currentLoggedInEmployee.id; // Display logged-in ID
-                loginMemberIdInput.disabled = true;
-                loginBtn.disabled = true;
-                logoutBtn.disabled = false;
+                if(employeeSelect) {
+                    employeeSelect.value = currentLoggedInEmployee.id; // Select logged-in ID
+                    employeeSelect.disabled = true;
+                }
+                if(loginBtn) loginBtn.disabled = true;
+                if(logoutBtn) logoutBtn.disabled = false;
                 employeeLoginStatus.textContent = `Currently logged in: ${currentLoggedInEmployee.name} (${currentLoggedInEmployee.id}) (since ${currentLoggedInEmployee.loginTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })})`;
             } else {
-                loginMemberIdInput.value = '';
-                loginMemberIdInput.disabled = false;
-                loginBtn.disabled = false;
-                logoutBtn.disabled = true;
+                if(employeeSelect) {
+                    employeeSelect.value = ""; // Reset dropdown
+                    employeeSelect.disabled = false;
+                }
+                if(loginBtn) loginBtn.disabled = false;
+                if(logoutBtn) logoutBtn.disabled = true;
                 employeeLoginStatus.textContent = 'No one is logged in.';
             }
-            // Admin-specific buttons are controlled by updateAdminUI
-            updateAdminUI();
+            updateAdminUI(); 
         }
 
         // Employee Login Button Click Handler
-        loginBtn.addEventListener('click', () => {
-            const enteredEmployeeId = loginMemberIdInput.value.trim().toUpperCase(); // Convert to uppercase for case-insensitive matching
-            
-            // Find the employee in the predefined list
-            const employee = predefinedTeamMembers.find(member => member.id === enteredEmployeeId);
-
-            if (!enteredEmployeeId) {
-                showMessage("Please enter your Employee ID to login.", "error");
-                return;
-            }
-            if (!employee) {
-                showMessage("Invalid Employee ID. Please enter a valid ID from your team.", "error");
-                loginMemberIdInput.value = ''; // Clear input on invalid ID
-                return;
-            }
-
-            if (currentLoggedInEmployee) {
-                showMessage(`Error: ${currentLoggedInEmployee.name} (${currentLoggedInEmployee.id}) is already logged in. Please log out first.`, "error");
-                return;
-            }
-
-            currentLoggedInEmployee = {
-                id: employee.id,
-                name: employee.name,
-                loginTime: new Date()
-            };
-            showMessage(`Logged in as ${currentLoggedInEmployee.name} (${currentLoggedInEmployee.id})!`, "success");
-
-            saveLocalState(); // Save the login state locally
-            updateLoginButtons();
-            // Data will be rendered by Firestore listener, no need to call renderTable here
-        });
-
-        // Employee Logout Button Click Handler
-        logoutBtn.addEventListener('click', async () => {
-            if (!currentLoggedInEmployee) {
-                showMessage("No one is currently logged in.", "error");
-                return;
-            }
-
-            const logoutTime = new Date();
-            // Calculate total hours from the stored loginTime and current logoutTime
-            const totalHours = calculateTotalHoursFromDates(currentLoggedInEmployee.loginTime, logoutTime);
-
-            const newEntry = {
-                employeeId: currentLoggedInEmployee.id, // Save employee ID
-                memberName: currentLoggedInEmployee.name, // Save employee name
-                date: currentLoggedInEmployee.loginTime.toISOString().split('T')[0], //YYYY-MM-DD string
-                startTime: currentLoggedInEmployee.loginTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-                endTime: logoutTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-                totalHours: parseFloat(totalHours) // Ensure it's a number
-            };
-
-            try {
-                if (!db) {
-                    showMessage("Database not initialized. Cannot save entry. Please ensure Firebase is configured.", "error");
-                    console.error("Add failed: DB not ready.");
+        if(loginBtn) {
+            loginBtn.addEventListener('click', () => {
+                const selectedEmployeeId = employeeSelect ? employeeSelect.value : '';
+                
+                if (!selectedEmployeeId) {
+                    showMessage("Please select an Employee to login.", "error");
                     return;
                 }
-                console.log("Attempting to add new document to Firestore:", newEntry);
-                // The collection path will include the specific appId (your Firebase Project ID)
-                const collectionRef = collection(db, `artifacts/${appId}/public/data/extendedHours`);
-                await addDoc(collectionRef, {
-                    employeeId: newEntry.employeeId,
-                    memberName: newEntry.memberName,
-                    date: newEntry.date,
-                    startTime: newEntry.startTime,
-                    endTime: newEntry.endTime,
-                    totalHours: newEntry.totalHours,
-                    createdAt: new Date().toISOString() // Add a timestamp for potential future ordering needs
-                });
-                console.log("Document successfully added to Firestore.");
-                showMessage(`Logged out. ${newEntry.memberName} (${newEntry.employeeId}) worked ${newEntry.totalHours} hours. Entry saved!`, "success");
-            } catch (e) {
-                console.error("Error adding document to Firestore: ", e);
-                showMessage("Failed to save entry. Please check console for details and Firebase setup.", "error");
-            }
+                
+                const employee = predefinedTeamMembers.find(member => member.id.toUpperCase() === selectedEmployeeId.toUpperCase());
 
-            currentLoggedInEmployee = null; // Clear logged in state
-            saveLocalState(); // Clear logged in state locally
-            updateLoginButtons();
-            // applyFilter() is not needed here; onSnapshot will trigger renderTable
-        });
+                if (!employee) {
+                    showMessage("Invalid Employee selected. Please select a valid ID from your team.", "error");
+                    if(employeeSelect) employeeSelect.value = ''; 
+                    return;
+                }
+
+                if (currentLoggedInEmployee) {
+                    showMessage(`Error: ${currentLoggedInEmployee.name} (${currentLoggedInEmployee.id}) is already logged in. Please log out first.`, "error");
+                    return;
+                }
+
+                currentLoggedInEmployee = {
+                    id: employee.id,
+                    name: employee.name,
+                    loginTime: new Date()
+                };
+                showMessage(`Logged in as ${currentLoggedInEmployee.name} (${currentLoggedInEmployee.id})!`, "success");
+
+                saveLocalState(); 
+                updateLoginButtons();
+            });
+        }
+
+        // Employee Logout Button Click Handler
+        if(logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                if (!currentLoggedInEmployee) {
+                    showMessage("No one is currently logged in.", "error");
+                    return;
+                }
+
+                const logoutTime = new Date();
+                const totalHours = parseFloat(calculateTotalHoursFromDates(currentLoggedInEmployee.loginTime, logoutTime));
+                const overtimeHours = Math.max(0, totalHours - OVERTIME_THRESHOLD_HOURS); 
+
+                const newEntry = {
+                    employeeId: currentLoggedInEmployee.id, 
+                    memberName: currentLoggedInEmployee.name, 
+                    date: currentLoggedInEmployee.loginTime.toISOString().split('T')[0], 
+                    startTime: currentLoggedInEmployee.loginTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+                    endTime: logoutTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+                    totalHours: totalHours,
+                    overtimeHours: overtimeHours, 
+                };
+
+                try {
+                    if (!db) {
+                        showMessage("Database not initialized. Cannot save entry. Please ensure Firebase is configured.", "error");
+                        console.error("Add failed: DB not ready.");
+                        return;
+                    }
+                    console.log("Attempting to add new document to Firestore:", newEntry);
+                    const collectionRef = collection(db, `artifacts/${appId}/public/data/extendedHours`);
+                    await addDoc(collectionRef, {
+                        employeeId: newEntry.employeeId,
+                        memberName: newEntry.memberName,
+                        date: newEntry.date,
+                        startTime: newEntry.startTime,
+                        endTime: newEntry.endTime,
+                        totalHours: newEntry.totalHours,
+                        overtimeHours: newEntry.overtimeHours, 
+                        createdAt: new Date().toISOString() 
+                    });
+                    console.log("Document successfully added to Firestore.");
+                    showMessage(`Logged out. ${newEntry.memberName} (${newEntry.employeeId}) worked ${newEntry.totalHours.toFixed(2)} hours (Overtime: ${newEntry.overtimeHours.toFixed(2)}). Entry saved!`, "success");
+                } catch (e) {
+                    console.error("Error adding document to Firestore: ", e);
+                    showMessage("Failed to save entry. Please check console for details and Firebase setup.", "error");
+                }
+
+                currentLoggedInEmployee = null; 
+                saveLocalState(); 
+                updateLoginButtons();
+            });
+        }
 
 
         // Function to export table data to CSV
-        exportCsvBtn.addEventListener('click', () => {
-            if (!isAdminLoggedIn || !isAdminMode) { // Ensure only admin in admin mode can export
-                showMessage("You must be logged in as an Admin and Admin Mode must be enabled to export data.", "error");
-                return;
-            }
-            if (extendedHoursEntries.length === 0) {
-                showMessage("No data to export.", "info");
-                return;
-            }
+        if(exportCsvBtn) {
+            exportCsvBtn.addEventListener('click', () => {
+                if (!isAdminLoggedIn || !isAdminMode) { 
+                    showMessage("You must be logged in as an Admin and Admin Mode must be enabled to export data.", "error");
+                    return;
+                }
+                if (extendedHoursEntries.length === 0) {
+                    showMessage("No data to export.", "info");
+                    return;
+                }
 
-            // Get current filtered/displayed data (from the global array which is updated by Firestore)
-            const filteredEntries = filterEntriesByDate(
-                filterStartDateInput.value ? new Date(filterStartDateInput.value) : null,
-                filterEndDateInput.value ? new Date(filterEndDateInput.value) : null
-            );
+                const filteredEntries = filterEntriesByDate(
+                    filterStartDateInput.value ? new Date(filterStartDateInput.value) : null,
+                    filterEndDateInput.value ? new Date(filterEndDateInput.value) : null
+                );
 
-            let csvContent = "Employee Name,Employee ID,Date,Start Time,End Time,Total Hours\n"; // CSV header
+                let csvContent = "Employee Name,Employee ID,Date,Start Time,End Time,Total Hours,Overtime Hours\n"; 
 
-            filteredEntries.forEach(entry => {
-                const row = [
-                    entry.memberName,
-                    entry.employeeId,
-                    new Date(entry.date).toLocaleDateString('en-GB'),
-                    entry.startTime,
-                    entry.endTime,
-                    entry.totalHours
-                ].map(item => `"${item}"`).join(','); // Enclose items in quotes to handle commas within data
-                csvContent += row + "\n";
+                filteredEntries.forEach(entry => {
+                    const row = [
+                        entry.memberName,
+                        entry.employeeId,
+                        new Date(entry.date).toLocaleDateString('en-GB'),
+                        entry.startTime,
+                        entry.endTime,
+                        entry.totalHours.toFixed(2),
+                        entry.overtimeHours.toFixed(2),
+                    ].map(item => `"${item}"`).join(','); 
+                    csvContent += row + "\n";
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute('download', 'extended_hours.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showMessage("Data exported to CSV!", "success");
             });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.setAttribute('download', 'extended_hours.csv');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showMessage("Data exported to CSV!", "success");
-        });
+        }
 
         // Function to filter entries by date range
         function filterEntriesByDate(startDate, endDate) {
             return extendedHoursEntries.filter(entry => {
-                // Ensure entry.date is handled as a Date object for comparison, even if it comes as a string from Firestore
                 const entryDate = new Date(entry.date);
-                entryDate.setHours(0, 0, 0, 0); // Normalize to start of day for comparison
+                entryDate.setHours(0, 0, 0, 0); 
 
                 const startMatch = !startDate || entryDate >= startDate;
-                const endMatch = !endDate || entryDate <= endDate;
+                const endMatch = !endDate || entryDate >= endDate; 
                 return startMatch && endMatch;
             });
         }
@@ -806,9 +1015,8 @@
             const endDate = filterEndDateInput.value ? new Date(filterEndDateInput.value) : null;
 
             if (startDate) startDate.setHours(0, 0, 0, 0);
-            if (endDate) endDate.setHours(23, 59, 59, 999); // Set to end of day for inclusive range
+            if (endDate) endDate.setHours(23, 59, 59, 999); 
 
-            // Basic validation for date range
             if (startDate && endDate && startDate > endDate) {
                 showMessage("Filter 'From Date' cannot be after 'To Date'.", "error");
                 return;
@@ -817,124 +1025,305 @@
             const filtered = filterEntriesByDate(startDate, endDate);
             renderTable(filtered);
             updateSummary(filtered);
-            // showMessage("Filter applied.", "info"); // Only show if filter actually changes
+            updateMonthlyOvertimeReport(filtered); 
         }
 
         // Event listeners for filter buttons
-        applyFilterBtn.addEventListener('click', applyFilter);
-        clearFilterBtn.addEventListener('click', () => {
-            filterStartDateInput.value = '';
-            filterEndDateInput.value = '';
-            applyFilter(); // Clear filter and re-render all data
-            showMessage("Filter cleared!", "info");
-        });
+        if (applyFilterBtn) { 
+            applyFilterBtn.addEventListener('click', applyFilter);
+        }
+        if (clearFilterBtn) { 
+            clearFilterBtn.addEventListener('click', () => {
+                if(filterStartDateInput) filterStartDateInput.value = '';
+                if(filterEndDateInput) filterEndDateInput.value = '';
+                applyFilter(); 
+                showMessage("Filter cleared!", "info");
+            });
+        }
 
         // Admin Login Button Click Handler
-        adminLoginBtn.addEventListener('click', () => {
-            const enteredAdminId = adminIdInput.value.trim().toUpperCase();
-            const enteredAdminPassword = adminPasswordInput.value.trim();
+        if(adminLoginBtn) {
+            adminLoginBtn.addEventListener('click', () => {
+                const enteredAdminId = adminIdInput.value.trim().toUpperCase();
+                const enteredAdminPassword = adminPasswordInput.value.trim();
 
-            if (enteredAdminId === ADMIN_EMPLOYEE_ID && enteredAdminPassword === ADMIN_PASSWORD) {
-                isAdminLoggedIn = true;
-                isAdminMode = true; // Auto-enable admin mode on admin login
-                adminStatus.textContent = `Admin (${ADMIN_EMPLOYEE_ID}) logged in. Admin Mode Enabled.`;
-                showMessage("Admin login successful! Admin Mode activated.", "success");
-            } else {
-                isAdminLoggedIn = false;
-                isAdminMode = false;
-                adminStatus.textContent = "Invalid Admin ID or Password.";
-                showMessage("Invalid Admin ID or Password.", "error");
-            }
-            saveLocalState();
-            updateAdminUI(); // Update admin specific UI
-            renderTable(); // Re-render table to show/hide admin controls
-        });
+                if (enteredAdminId === ADMIN_EMPLOYEE_ID && enteredAdminPassword === ADMIN_PASSWORD) {
+                    isAdminLoggedIn = true;
+                    isAdminMode = true; 
+                    adminStatus.textContent = `Admin (${ADMIN_EMPLOYEE_ID}) logged in. Admin Mode Enabled.`;
+                    showMessage("Admin login successful! Admin Mode activated.", "success");
+                } else {
+                    isAdminLoggedIn = false;
+                    isAdminMode = false;
+                    adminStatus.textContent = "Invalid Admin ID or Password.";
+                    showMessage("Invalid Admin ID or Password.", "error");
+                }
+                saveLocalState();
+                updateAdminUI(); 
+                renderTable(); 
+            });
+        }
 
         // Admin Logout Button Click Handler
-        adminLogoutBtn.addEventListener('click', () => {
-            isAdminLoggedIn = false;
-            isAdminMode = false; // Disable admin mode on logout
-            adminIdInput.value = '';
-            adminPasswordInput.value = '';
-            adminStatus.textContent = "Admin logged out.";
-            showMessage("Admin logged out.", "info");
-            saveLocalState();
-            updateAdminUI(); // Update admin specific UI
-            renderTable(); // Re-render table to hide admin controls
-        });
+        if(adminLogoutBtn) {
+            adminLogoutBtn.addEventListener('click', () => {
+                isAdminLoggedIn = false;
+                isAdminMode = false; 
+                if(adminIdInput) adminIdInput.value = '';
+                if(adminPasswordInput) adminPasswordInput.value = '';
+                adminStatus.textContent = "Admin logged out.";
+                showMessage("Admin logged out.", "info");
+                saveLocalState();
+                updateAdminUI(); 
+                renderTable(); 
+            });
+        }
 
         // Toggle Admin Mode Button Click Handler
-        toggleAdminModeBtn.addEventListener('click', () => {
-            if (isAdminLoggedIn) { // Only allow if admin is logged in
-                isAdminMode = !isAdminMode;
-                saveLocalState();
-                updateAdminUI();
-                renderTable(); // Re-render table to hide/show delete buttons
-                showMessage(`Admin Mode: ${isAdminMode ? 'Enabled' : 'Disabled'}`, "info");
-            } else {
-                showMessage("You must be logged in as an Admin to toggle Admin Mode.", "error");
-            }
-        });
+        if(toggleAdminModeBtn) {
+            toggleAdminModeBtn.addEventListener('click', () => {
+                if (isAdminLoggedIn) { 
+                    isAdminMode = !isAdminMode;
+                    saveLocalState();
+                    updateAdminUI();
+                    renderTable(); 
+                    showMessage(`Admin Mode: ${isAdminMode ? 'Enabled' : 'Disabled'}`, "info");
+                } else {
+                    showMessage("You must be logged in as an Admin to toggle Admin Mode.", "error");
+                }
+            });
+        }
 
         // Function to open Admin Settings Modal
-        adminSettingsBtn.addEventListener('click', () => {
-            if (isAdminLoggedIn && isAdminMode) {
-                employeeListDisplay.textContent = JSON.stringify(predefinedTeamMembers, null, 2); // Display formatted JSON
-                adminSettingsModalBackdrop.classList.remove('hidden');
-            } else {
-                showMessage("You must be logged in as an Admin and Admin Mode must be enabled to access settings.", "error");
-            }
-        });
+        if(adminSettingsBtn) {
+            adminSettingsBtn.addEventListener('click', () => {
+                if (isAdminLoggedIn && isAdminMode) {
+                    renderManageEmployeesTable(); 
+                    if(adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.remove('hidden');
+                } else {
+                    showMessage("You must be logged in as an Admin and Admin Mode must be enabled to access settings.", "error");
+                }
+            });
+        }
 
         // Function to close Admin Settings Modal
-        closeAdminSettingsBtn.addEventListener('click', () => {
-            adminSettingsModalBackdrop.classList.add('hidden');
-        });
+        if(closeAdminSettingsBtn) {
+            closeAdminSettingsBtn.addEventListener('click', () => {
+                if(adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.add('hidden');
+            });
+        }
+
+        // --- New Functions for Managing Team Members ---
+
+        // Function to render the table of employees in the Admin Settings modal
+        function renderManageEmployeesTable() {
+            if(manageEmployeesTableBody) manageEmployeesTableBody.innerHTML = ''; 
+            if (predefinedTeamMembers.length === 0) {
+                const noDataRow = document.createElement('tr');
+                noDataRow.innerHTML = `<td colspan="3" class="px-6 py-4 text-center text-gray-400">No employees added yet.</td>`;
+                if(manageEmployeesTableBody) manageEmployeesTableBody.appendChild(noDataRow);
+                return;
+            }
+
+            predefinedTeamMembers.forEach(member => {
+                const row = document.createElement('tr');
+                row.className = 'bg-gray-800'; 
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">${member.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${member.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button data-id="${member.docId}" data-employee-id="${member.id}" data-employee-name="${member.name}" class="edit-employee-btn text-cyan-400 hover:text-cyan-300 mr-2">Edit</button>
+                        <button data-id="${member.docId}" class="delete-employee-btn text-red-500 hover:text-red-400">Delete</button>
+                    </td>
+                `;
+                if(manageEmployeesTableBody) manageEmployeesTableBody.appendChild(row);
+            });
+
+            document.querySelectorAll('.edit-employee-btn').forEach(button => {
+                button.addEventListener('click', handleEditEmployee);
+            });
+            document.querySelectorAll('.delete-employee-btn').forEach(button => {
+                button.addEventListener('click', handleDeleteEmployee);
+            });
+        }
+
+        // Handle Add Employee
+        if(addEmployeeBtn) {
+            addEmployeeBtn.addEventListener('click', async () => {
+                const id = newEmployeeIdInput.value.trim().toUpperCase();
+                const name = newEmployeeNameInput.value.trim();
+
+                if (!id || !name) {
+                    showMessage("Employee ID and Name cannot be empty.", "error");
+                    return;
+                }
+
+                if (predefinedTeamMembers.some(member => member.id.toUpperCase() === id)) {
+                    showMessage(`Employee ID '${id}' already exists.`, "error");
+                    return;
+                }
+
+                try {
+                    const teamMembersCollectionRef = collection(db, `artifacts/${appId}/public/data/teamMembers`);
+                    await addDoc(teamMembersCollectionRef, {
+                        id: id,
+                        name: name,
+                        createdAt: new Date().toISOString()
+                    });
+                    showMessage("Employee added successfully!", "success");
+                    if(newEmployeeIdInput) newEmployeeIdInput.value = '';
+                    if(newEmployeeNameInput) newEmployeeNameInput.value = '';
+                } catch (e) {
+                    console.error("Error adding employee:", e);
+                    showMessage("Failed to add employee. Check console.", "error");
+                }
+            });
+        }
+
+        // Handle Edit Employee (opens prompt for new values)
+        function handleEditEmployee(event) {
+            const docId = event.target.dataset.id;
+            const currentId = event.target.dataset.employeeId;
+            const currentName = event.target.dataset.employeeName;
+
+            let newId = currentId; // Initialize with current values
+            let newName = currentName;
+
+            // Prompt for new ID
+            showConfirmDialog(`Editing Employee: ${currentName} (${currentId})\n\nDo you want to change the Employee ID?`, (changeIdConfirmed) => {
+                if (!changeIdConfirmed) {
+                    // If user cancels changing ID, proceed to ask about name
+                    askForNewName();
+                    return;
+                }
+
+                // If user confirms changing ID, prompt for new ID value
+                showConfirmDialog(`Enter new ID for ${currentName} (current: ${currentId}):`, (idInput) => {
+                    if (idInput === null) { // User clicked cancel on the ID prompt
+                        showMessage("Edit cancelled.", "info");
+                        return;
+                    }
+                    newId = idInput.trim().toUpperCase() || currentId; // Use currentId if input is empty
+
+                    // After getting new ID, proceed to ask about name
+                    askForNewName();
+                });
+            });
+
+            function askForNewName() {
+                // Prompt for new Name
+                showConfirmDialog(`Do you want to change the Employee Name?`, (changeNameConfirmed) => {
+                    if (!changeNameConfirmed) {
+                        // If user cancels changing name, proceed to update with current name
+                        performUpdate(newId, newName);
+                        return;
+                    }
+
+                    // If user confirms changing name, prompt for new Name value
+                    showConfirmDialog(`Enter new Name for ${newId} (current: ${currentName}):`, (nameInput) => {
+                        if (nameInput === null) { // User clicked cancel on the Name prompt
+                            showMessage("Edit cancelled.", "info");
+                            return;
+                        }
+                        newName = nameInput.trim() || currentName; // Use currentName if input is empty
+
+                        // After getting new name, perform the update
+                        performUpdate(newId, newName);
+                    });
+                });
+            }
+
+            async function performUpdate(finalNewId, finalNewName) {
+                if (finalNewId === currentId && finalNewName === currentName) {
+                    showMessage("No changes detected.", "info");
+                    return;
+                }
+
+                if (finalNewId !== currentId && predefinedTeamMembers.some(member => member.id.toUpperCase() === finalNewId)) {
+                    showMessage(`New Employee ID '${finalNewId}' already exists.`, "error");
+                    return;
+                }
+
+                try {
+                    const employeeDocRef = doc(db, `artifacts/${appId}/public/data/teamMembers`, docId);
+                    await updateDoc(employeeDocRef, {
+                        id: finalNewId,
+                        name: finalNewName
+                    });
+                    showMessage(`Employee ${currentName} (${currentId}) updated to ${finalNewName} (${finalNewId})!`, "success");
+                } catch (e) {
+                    console.error("Error updating employee:", e);
+                    showMessage("Failed to update employee. Check console.", "error");
+                }
+            }
+        }
+
+
+        // Handle Delete Employee
+        function handleDeleteEmployee(event) {
+            const docId = event.target.dataset.id;
+            const employeeName = predefinedTeamMembers.find(member => member.docId === docId)?.name || 'this employee';
+
+            showConfirmDialog(`Are you sure you want to delete ${employeeName}? This action cannot be undone.`, async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const employeeDocRef = doc(db, `artifacts/${appId}/public/data/teamMembers`, docId);
+                        await deleteDoc(employeeDocRef);
+                        showMessage(`${employeeName} deleted successfully!`, "success");
+                    } catch (e) {
+                        console.error("Error deleting employee:", e);
+                        showMessage("Failed to delete employee. Check console.", "error");
+                    }
+                } else {
+                    showMessage("Deletion cancelled.", "info");
+                }
+            });
+        }
 
 
         // Update Admin UI (buttons, sections visibility)
         function updateAdminUI() {
             // Admin Access Section visibility
             if (isAdminLoggedIn) {
-                adminIdInput.disabled = true;
-                adminPasswordInput.disabled = true;
-                adminLoginBtn.disabled = true;
-                adminLogoutBtn.disabled = false;
+                if(adminIdInput) adminIdInput.disabled = true;
+                if(adminPasswordInput) adminPasswordInput.disabled = true;
+                if(adminLoginBtn) adminLoginBtn.disabled = true;
+                if(adminLogoutBtn) adminLogoutBtn.disabled = false;
             } else {
-                adminIdInput.disabled = false;
-                adminPasswordInput.disabled = false;
-                adminLoginBtn.disabled = false;
-                adminLogoutBtn.disabled = true;
+                if(adminIdInput) adminIdInput.disabled = false;
+                if(adminPasswordInput) adminPasswordInput.disabled = false;
+                if(adminLoginBtn) adminLoginBtn.disabled = false;
+                if(adminLogoutBtn) adminLogoutBtn.disabled = true;
             }
 
             // Admin-specific control buttons visibility
             if (isAdminLoggedIn) {
-                toggleAdminModeBtn.classList.remove('hidden');
-                adminSettingsBtn.classList.remove('hidden');
-                toggleAdminModeBtn.textContent = isAdminMode ? 'Disable Admin Mode' : 'Enable Admin Mode';
-                toggleAdminModeBtn.classList.toggle('bg-yellow-500', !isAdminMode);
-                toggleAdminModeBtn.classList.toggle('hover:bg-yellow-600', !isAdminMode);
-                toggleAdminModeBtn.classList.toggle('focus:ring-yellow-500', !isAdminMode);
-                toggleAdminModeBtn.classList.toggle('bg-gray-500', isAdminMode);
-                toggleAdminModeBtn.classList.toggle('hover:bg-gray-600', isAdminMode);
-                toggleAdminModeBtn.classList.toggle('focus:ring-gray-400', isAdminMode);
+                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.remove('hidden');
+                if(adminSettingsBtn) adminSettingsBtn.classList.remove('hidden');
+                if(toggleAdminModeBtn) toggleAdminModeBtn.textContent = isAdminMode ? 'Disable Admin Mode' : 'Enable Admin Mode';
+                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('bg-yellow-600', !isAdminMode);
+                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('hover:bg-yellow-700', !isAdminMode);
+                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('focus:ring-yellow-500', !isAdminMode);
+                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('bg-gray-600', isAdminMode); 
+                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('hover:bg-gray-700', isAdminMode);
+                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('focus:ring-gray-500', isAdminMode);
 
-                // Control CSV Export and Delete Selected buttons based on isAdminMode
                 if (exportCsvBtn) {
                    exportCsvBtn.classList.toggle('hidden', !isAdminMode);
                 }
                 if (deleteSelectedBtn) {
                     deleteSelectedBtn.classList.toggle('hidden', !isAdminMode || selectedEntryIds.size === 0);
                 }
-                if (selectAllCheckboxes) {
-                    const deleteColumnHeader = document.querySelector('.delete-column-header');
-                    if (deleteColumnHeader) deleteColumnHeader.classList.toggle('hidden', !isAdminMode);
+                const deleteColumnHeader = document.querySelector('.delete-column-header');
+                if (deleteColumnHeader) {
+                    deleteColumnHeader.classList.toggle('hidden', !isAdminMode);
                 }
+                if(filterEntriesSection) filterEntriesSection.classList.toggle('hidden', !isAdminMode);
 
             } else {
-                toggleAdminModeBtn.classList.add('hidden');
-                adminSettingsBtn.classList.add('hidden');
-                isAdminMode = false; // Ensure admin mode is off when not logged in as admin
+                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.add('hidden');
+                if(adminSettingsBtn) adminSettingsBtn.classList.add('hidden');
+                isAdminMode = false; 
                 if (exportCsvBtn) {
                    exportCsvBtn.classList.add('hidden');
                 }
@@ -942,67 +1331,120 @@
                     deleteSelectedBtn.classList.add('hidden');
                 }
                 if (selectAllCheckboxes) {
-                    selectAllCheckboxes.checked = false; // Uncheck select all
+                    selectAllCheckboxes.checked = false; 
                     const deleteColumnHeader = document.querySelector('.delete-column-header');
                     if (deleteColumnHeader) deleteColumnHeader.classList.add('hidden');
                 }
+                if(filterEntriesSection) filterEntriesSection.classList.add('hidden');
             }
         }
 
-        // Keeping applyDarkMode for initial load, but it no longer toggles
+        // Dark Mode Toggle Logic
         function applyDarkMode(enabled) {
-            // This function now just ensures the initial state is light mode
-            // as dark mode toggle functionality has been removed.
-            document.documentElement.classList.remove('dark');
-            document.documentElement.classList.add('light');
+            if (enabled) {
+                document.documentElement.classList.add('dark');
+                document.documentElement.classList.remove('light');
+                document.body.classList.remove('bg-gray-950', 'text-gray-100');
+                document.body.classList.add('bg-gray-950', 'text-gray-100'); // Ensure dark body background
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+                document.body.classList.remove('bg-gray-950', 'text-gray-100');
+                document.body.classList.add('bg-white', 'text-gray-900'); // Light body background
+            }
+            // Re-render table and summary to apply correct row background colors
+            renderTable();
+            updateSummary();
+            updateMonthlyOvertimeReport();
+        }
+
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener('change', (event) => {
+                applyDarkMode(event.target.checked);
+                saveLocalState(); // Save dark mode preference
+            });
+        }
+
+
+        // Function to seed predefined team members into Firestore if the collection is empty
+        async function seedTeamMembersIfEmpty() {
+            if (!db) {
+                console.warn("Firestore instance not available for seeding.");
+                return;
+            }
+            const teamMembersCollectionRef = collection(db, `artifacts/${appId}/public/data/teamMembers`);
+            try {
+                const snapshot = await getDocs(teamMembersCollectionRef);
+                if (snapshot.empty) {
+                    console.log("Team members collection is empty. Seeding with predefined members...");
+                    for (const member of predefinedTeamMembers) {
+                        // Check if member already exists to prevent duplicates if seeding runs multiple times
+                        // This is a simple check, a more robust solution might involve a transaction or checking by ID.
+                        const existingMemberQuery = query(teamMembersCollectionRef, where("id", "==", member.id));
+                        const existingMemberSnapshot = await getDocs(existingMemberQuery);
+
+                        if (existingMemberSnapshot.empty) {
+                            await addDoc(teamMembersCollectionRef, {
+                                id: member.id,
+                                name: member.name,
+                                createdAt: new Date().toISOString()
+                            });
+                            console.log(`Seeded employee: ${member.name} (${member.id})`);
+                        } else {
+                            console.log(`Employee ${member.name} (${member.id}) already exists, skipping seeding.`);
+                        }
+                    }
+                    showMessage("Predefined team members added to database!", "success");
+                } else {
+                    console.log("Team members collection is not empty. Skipping seeding.");
+                }
+            } catch (e) {
+                console.error("Error seeding team members:", e);
+                showMessage("Failed to seed predefined team members. Check console.", "error");
+            }
         }
 
 
         // Initialize Firebase and set up Firestore listener
         document.addEventListener('DOMContentLoaded', () => {
-            loadLocalState(); // Load local preferences first
+            loadLocalState(); // Load dark mode preference early
 
-            // --- IMPORTANT: PLACEHOLDER CHECK FOR FIREBASE CONFIG ---
-            // This check ensures that you have actually replaced the placeholder values in firebaseConfig.
-            // If these values are still the default placeholders, Firebase cannot connect and will show errors.
-            if (firebaseConfig.apiKey === "YOUR_ACTUAL_API_KEY" || firebaseConfig.projectId === "YOUR_ACTUAL_PROJECT_ID" || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
+            if (firebaseConfig.apiKey === "YOUR_ACTUAL_API_KEY_GOES_HERE" || firebaseConfig.projectId === "YOUR_PROJECT_ID_GOES_HERE" || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
                 console.error("Firebase Configuration Error: Placeholder API Key or Project ID found, or config is incomplete. Please update firebaseConfig with your actual Firebase project details from the Firebase Console.");
                 showMessage("Firebase Setup Error: Your API Key is not valid or configuration is missing. Please replace the placeholder values in 'firebaseConfig' in the code with your actual Firebase project details from the Firebase Console.", "error");
-                return; // Stop further Firebase initialization
+                return; 
             }
-            // --- END PLACEHOLDER CHECK ---
-
-            // Proceed with Firebase initialization only if the config seems valid
             try {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
                 console.log("Firebase App, Firestore, and Auth initialized with provided config.");
 
-                // Authenticate and then set up listener
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         currentUserId = user.uid;
-                        currentUserIdDisplay.textContent = currentUserId;
+                        if(currentUserIdDisplay) currentUserIdDisplay.textContent = currentUserId;
                         console.log("Firebase authenticated. User ID:", currentUserId);
-                        setupFirestoreListener(); // Start listening to Firestore data
+                        // Call seed function after auth is ready and db is available
+                        await seedTeamMembersIfEmpty(); 
+                        setupFirestoreListeners(); 
                     } else {
                         currentUserId = null;
-                        currentUserIdDisplay.textContent = 'Not authenticated';
+                        if(currentUserIdDisplay) currentUserIdDisplay.textContent = 'Not authenticated';
                         console.log("Firebase: No user signed in. Attempting anonymous sign-in.");
                         try {
-                            await signInAnonymously(auth); // Sign in anonymously
+                            await signInAnonymously(auth); 
                             console.log("Signed in anonymously.");
                         } catch (error) {
                             console.error("Firebase Auth Error during anonymous sign-in:", error);
                             if (error.code === 'auth/configuration-not-found') {
-                                showMessage("Firebase Auth Error: Authentication is not enabled for your project. Please enable 'Anonymous' sign-in in your Firebase Console (Build -> Authentication -> Get started -> Sign-in method).", "error");
+                                showMessage("Firebase Auth Error: Authentication is not enabled for your project or 'Anonymous' sign-in is disabled. Please enable 'Anonymous' sign-in in your Firebase Console (Build -> Authentication -> Get started -> Sign-in method).", "error");
                             } else {
-                                showMessage("Failed to authenticate with Firebase. Data won't be saved or synchronized. Check console for details.", "error");
+                                showMessage("Failed to authenticate with Firebase. Data won-t be saved or synchronized. Check console for details.", "error");
                             }
                         }
                     }
-                    updateAdminUI(); // Update visibility based on auth state and logged-in member
+                    updateAdminUI(); 
                 }, (error) => {
                     console.error("Error in onAuthStateChanged:", error);
                     showMessage("Firebase authentication state error. Check console.", "error");
@@ -1013,60 +1455,81 @@
             }
         });
 
-        // Firestore Real-time Listener Function
-        function setupFirestoreListener() {
+        // Combined Firestore Real-time Listener Function
+        function setupFirestoreListeners() {
             if (!db) {
-                console.warn("Firestore instance is not available. Cannot set up listener.");
+                console.warn("Firestore instance is not available. Cannot set up listeners.");
                 return;
             }
             if (!currentUserId) {
-                console.warn("User ID is not available. Cannot set up listener.");
+                console.warn("User ID is not available. Cannot set up listeners.");
                 return;
             }
 
-            console.log(`Setting up Firestore listener for collection: artifacts/${appId}/public/data/extendedHours`);
-            // Query for all entries, sorted by creation date
-            const q = query(collection(db, `artifacts/${appId}/public/data/extendedHours`), orderBy("createdAt", "asc"));
-
-            onSnapshot(q, (snapshot) => {
-                console.log("Firestore data received. Processing snapshot...");
+            console.log(`Setting up Firestore listener for extendedHours collection: artifacts/${appId}/public/data/extendedHours`);
+            const hoursQuery = query(collection(db, `artifacts/${appId}/public/data/extendedHours`), orderBy("createdAt", "asc"));
+            onSnapshot(hoursQuery, (snapshot) => {
+                console.log("Firestore (extendedHours) data received. Processing snapshot...");
                 const fetchedEntries = [];
                 snapshot.forEach((doc) => {
                     const data = doc.data();
                     fetchedEntries.push({
-                        id: doc.id, // Firestore document ID is crucial for deletion
-                        employeeId: data.employeeId, // Include employee ID
+                        id: doc.id, 
+                        employeeId: data.employeeId, 
                         memberName: data.memberName,
-                        date: data.date, // Stored asYYYY-MM-DD string
+                        date: data.date, 
                         startTime: data.startTime,
                         endTime: data.endTime,
-                        totalHours: parseFloat(data.totalHours), // Ensure it's a number
-                        createdAt: data.createdAt // Keep for sorting consistency
+                        totalHours: parseFloat(data.totalHours || 0), 
+                        overtimeHours: parseFloat(data.overtimeHours || 0), 
+                        createdAt: data.createdAt
                     });
                 });
-                // Sort fetched entries for consistent display
                 fetchedEntries.sort((a, b) => {
-                    // Primary sort by date
                     const dateA = new Date(a.date);
                     const dateB = new Date(b.date);
                     if (dateA.getTime() !== dateB.getTime()) {
                         return dateA - dateB;
                     }
-                    // Secondary sort by start time if dates are the same
                     const timeA = a.startTime.split(':').map(Number);
                     const timeB = b.startTime.split(':').map(Number);
-                    if (timeA[0] !== timeB[0]) { // Compare hours
+                    if (timeA[0] !== timeB[0]) { 
                         return timeA[0] - timeB[0];
                     }
-                    return timeA[1] - timeB[1]; // Compare minutes
+                    return timeA[1] - timeB[1]; 
                 });
 
-                extendedHoursEntries = fetchedEntries; // Update the global array with Firestore data
+                extendedHoursEntries = fetchedEntries; 
                 console.log("Extended hours entries updated from Firestore:", extendedHoursEntries);
-                applyFilter(); // Re-render table and summary with fetched data (and current filter applied)
+                applyFilter(); 
             }, (error) => {
-                console.error("Error listening to Firestore:", error);
+                console.error("Error listening to extendedHours Firestore:", error);
                 showMessage("Error loading real-time data from database. Check console for details.", "error");
+            });
+
+            console.log(`Setting up Firestore listener for teamMembers collection: artifacts/${appId}/public/data/teamMembers`);
+            const teamMembersQuery = query(collection(db, `artifacts/${appId}/public/data/teamMembers`), orderBy("createdAt", "asc"));
+            onSnapshot(teamMembersQuery, (snapshot) => {
+                console.log("Firestore (teamMembers) data received. Processing snapshot...");
+                const fetchedTeamMembers = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    fetchedTeamMembers.push({
+                        docId: doc.id, 
+                        id: data.id,   
+                        name: data.name, 
+                        createdAt: data.createdAt
+                    });
+                });
+                predefinedTeamMembers = fetchedTeamMembers; 
+                console.log("Predefined team members updated from Firestore:", predefinedTeamMembers);
+                populateEmployeeDropdown(); // Re-populate dropdown when team members update
+                if (!adminSettingsModalBackdrop.classList.contains('hidden')) {
+                    renderManageEmployeesTable(); 
+                }
+            }, (error) => {
+                console.error("Error listening to teamMembers Firestore:", error);
+                showMessage("Error loading team members from database. Check console for details.", "error");
             });
         }
     </script>
