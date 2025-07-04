@@ -54,7 +54,7 @@
         }
         .message-dialog {
             /* Tailwind classes for styling the dialog box itself */
-            @apply bg-white p-8 rounded-lg shadow-2xl max-w-sm w-11/12 text-center border border-gray-300; /* Light background, subtle border */
+            @apply p-8 rounded-lg shadow-2xl max-w-sm w-11/12 text-center bg-red-700 text-white border-2 border-red-500; /* Red background, white text, red border */
             transform: scale(0.9); /* Start slightly smaller */
             opacity: 0; /* Start invisible */
             transition: all 0.3s ease-out; /* Smooth transition for appearance */
@@ -64,21 +64,16 @@
             opacity: 1; /* Fade in */
         }
         .message-dialog h3 {
-            @apply text-gray-800 text-3xl font-bold mb-4; /* Darker title for light background */
+            @apply text-3xl font-bold mb-4 text-white; /* White title */
         }
-        .message-dialog h3.text-green-400 { @apply text-green-600; } /* Keep success green */
-        .message-dialog h3.text-red-400 { @apply text-red-600; }   /* Keep error red */
-        .message-dialog h3.text-emerald-400 { @apply text-gray-800; } /* Info title dark */
-
         .message-dialog p {
-            @apply text-gray-700 text-lg mb-6; /* Darker message text for light background */
+            @apply text-lg mb-6 text-gray-100; /* Light grey message text */
         }
         .message-dialog button {
             @apply px-8 py-3 rounded-full shadow-lg font-semibold transition duration-200 ease-in-out; /* Pill-shaped buttons, smoother hover */
         }
 
-
-        /* Confirmation Dialog Styling (same as message dialog for consistency) */
+        /* Confirmation Dialog Styling (similar to message dialog for consistency) */
         .confirm-dialog-backdrop {
             position: fixed;
             top: 0;
@@ -92,7 +87,7 @@
             z-index: 9999;
         }
         .confirm-dialog {
-            @apply bg-white p-8 rounded-lg shadow-2xl max-w-sm w-11/12 text-center border border-gray-300;
+            @apply bg-red-700 p-8 rounded-lg shadow-2xl max-w-sm w-11/12 text-center border-2 border-red-500 text-white; /* Red background, white text, red border */
             transform: scale(0.9);
             opacity: 0;
             transition: all 0.3s ease-out;
@@ -102,10 +97,10 @@
             opacity: 1;
         }
         .confirm-dialog h3 {
-            @apply text-gray-800 text-3xl font-bold mb-4;
+            @apply text-white text-3xl font-bold mb-4;
         }
         .confirm-dialog p {
-            @apply text-gray-700 text-lg mb-6;
+            @apply text-gray-100 text-lg mb-6;
         }
         .confirm-dialog button {
             @apply px-8 py-3 rounded-full shadow-lg font-semibold transition duration-200 ease-in-out;
@@ -138,6 +133,56 @@
         }
         .admin-settings-modal button {
             @apply mt-6 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-md shadow-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out;
+        }
+
+        /* Dark Mode Toggle Switch CSS */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px; /* Slightly larger width */
+            height: 24px; /* Slightly larger height */
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px; /* Half of height for rounded corners */
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px; /* Slightly smaller than slider height */
+            width: 18px; /* Slightly smaller than slider height */
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px); /* Move by (width - height + padding) */
         }
     </style>
 </head>
@@ -217,10 +262,10 @@
             <p class="text-lg text-gray-400">Efficiently log and track employee extended working hours.</p>
         </header>
 
-        <!-- User ID Display -->
-        <div class="mb-6 p-4 rounded-lg bg-gray-600 text-center text-sm text-gray-300 shadow-inner">
+        <!-- User ID Display & Dark Mode Toggle -->
+        <div class="mb-6 p-4 rounded-lg bg-gray-600 text-center text-sm text-gray-300 shadow-inner relative hidden">
             User ID: <span id="currentUserIdDisplay" class="font-semibold text-gray-100">Loading...</span>
-            <div class="absolute top-4 right-4 flex items-center space-x-2">
+            <div class="absolute top-1/2 -translate-y-1/2 right-4 flex items-center space-x-2">
                 <span class="text-gray-300">Dark Mode</span>
                 <label class="switch">
                     <input type="checkbox" id="darkModeToggle" checked> <!-- Checked by default for dark mode -->
@@ -228,16 +273,6 @@
                 </label>
             </div>
         </div>
-
-        <!-- Control Buttons: Admin Mode and Admin Settings -->
-        <section class="mb-10 flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4 p-4 rounded-xl">
-            <button id="toggleAdminModeBtn" class="px-6 py-3 bg-yellow-600 text-white font-semibold rounded-lg shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all duration-300 ease-in-out hidden">
-                Enable Admin Mode
-            </button>
-            <button id="adminSettingsBtn" class="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-300 ease-in-out hidden">
-                Admin Settings
-            </button>
-        </section>
 
         <!-- Admin Access Section - Solid dark red background from image -->
         <section id="adminAccessSection" class="mb-10 p-6 admin-panel-solid">
@@ -257,6 +292,15 @@
                 </div>
             </div>
             <p id="adminStatus" class="mt-4 text-center text-lg font-medium text-red-200"></p>
+            <!-- Admin-specific control buttons -->
+            <div class="mt-6 flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4">
+                <button id="toggleAdminModeBtn" class="px-6 py-3 bg-yellow-600 text-white font-semibold rounded-lg shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all duration-300 ease-in-out hidden">
+                    Enable Admin Mode
+                </button>
+                <button id="adminSettingsBtn" class="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-300 ease-in-out hidden">
+                    Admin Settings
+                </button>
+            </div>
         </section>
 
         <!-- Employee Login/Logout Section -->
@@ -277,6 +321,81 @@
             </div>
             <p id="employeeLoginStatus" class="mt-4 text-center text-lg font-medium text-gray-300"></p>
         </section>
+
+        <!-- Leave Records Management Section -->
+        <section class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800">
+            <h2 class="text-2xl font-bold text-blue-400 mb-6">Leave Records Management</h2>
+            
+            <!-- Request Leave Form -->
+            <div class="mb-8 p-4 border border-gray-700 rounded-md">
+                <h4 class="text-xl font-semibold mb-4 text-gray-200">Request New Leave</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label for="leaveEmployeeSelect" class="block text-sm font-medium text-gray-300 mb-1">Employee</label>
+                        <select id="leaveEmployeeSelect" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-200 text-gray-900">
+                            <option value="">-- Select Employee --</option>
+                            <!-- Employee options will be dynamically inserted here -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="leaveTypeSelect" class="block text-sm font-medium text-gray-300 mb-1">Leave Type</label>
+                        <select id="leaveTypeSelect" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-200 text-gray-900">
+                            <option value="">-- Select Type --</option>
+                            <option value="Annual">Annual Leave</option>
+                            <option value="Sick">Sick Leave</option>
+                            <option value="Casual">Casual Leave</option>
+                            <option value="Unpaid">Unpaid Leave</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="leaveStartDate" class="block text-sm font-medium text-gray-300 mb-1">Start Date</label>
+                        <input type="date" id="leaveStartDate" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-200 text-gray-900">
+                    </div>
+                    <div>
+                        <label for="leaveEndDate" class="block text-sm font-medium text-gray-300 mb-1">End Date</label>
+                        <input type="date" id="leaveEndDate" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-200 text-gray-900">
+                    </div>
+                </div>
+                <button id="requestLeaveBtn" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">Request Leave</button>
+            </div>
+
+            <!-- Leave Requests Table -->
+            <div class="mb-4">
+                <h4 class="text-xl font-semibold mb-4 text-gray-200">Pending & Approved Leave Requests</h4>
+                <div class="overflow-x-auto rounded-lg shadow-md table-container max-h-60 border border-gray-700">
+                    <table class="min-w-full divide-y divide-gray-700">
+                        <thead class="bg-gray-700 sticky top-0">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Employee</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Type</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Start Date</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">End Date</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Days</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider admin-action-column hidden">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaveRequestsTableBody" class="divide-y divide-gray-700">
+                            <!-- Leave requests will be dynamically inserted here -->
+                            <tr><td colspan="7" class="px-6 py-4 text-center text-gray-400">No leave requests.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-6 flex justify-end">
+                    <button id="exportLeaveCsvBtn" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 ease-in-out hidden">Export Leave Data to CSV</button>
+                </div>
+            </div>
+
+            <!-- Leave Balance Summary -->
+            <div>
+                <h4 class="text-xl font-semibold mb-4 text-gray-200">Leave Balance Summary</h4>
+                <div id="leaveBalanceSummary" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <!-- Leave balances will be dynamically inserted here -->
+                    <p class="text-gray-400 col-span-full" id="noLeaveBalanceMessage">No leave balance data.</p>
+                </div>
+            </div>
+        </section>
+
 
         <!-- Filter Section -->
         <section id="filterEntriesSection" class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800 hidden">
@@ -345,6 +464,10 @@
         </section>
     </div>
 
+    <footer class="text-center text-gray-500 text-sm py-4">
+        Made By – RK Ardur Team
+    </footer>
+
     <script type="module">
         // Firebase Imports (required for cloud database)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
@@ -409,6 +532,16 @@
         // State variable for Admin Mode
         let isAdminMode = false;
 
+        // --- Leave Management Variables ---
+        let leaveRecords = []; // Stores all leave requests
+        let leaveBalances = {}; // Stores current leave balances per employee { employeeId: { Annual: 10, Sick: 5, ... } }
+        const INITIAL_LEAVE_BALANCE = { // Kept for potential future use or display, but not enforced
+            Annual: 15,
+            Sick: 7,
+            Casual: 5,
+            Unpaid: 999 
+        };
+
         // DOM Elements - Employee Login
         const employeeSelect = document.getElementById('employeeSelect'); // Changed to select element
         const loginBtn = document.getElementById('loginBtn');
@@ -463,6 +596,7 @@
 
         // Message Dialog Elements
         const messageDialogBackdrop = document.getElementById('messageDialogBackdrop');
+        const messageDialogElement = document.getElementById('messageDialog'); // Reference to the dialog itself
         const messageDialogTitle = document.getElementById('messageDialogTitle');
         const messageDialogMessage = document.getElementById('messageDialogMessage');
         const messageDialogCloseBtn = document.getElementById('messageDialogCloseBtn');
@@ -470,23 +604,44 @@
         // Dark Mode Toggle Element
         const darkModeToggle = document.getElementById('darkModeToggle');
 
+        // Leave Management DOM Elements
+        const leaveEmployeeSelect = document.getElementById('leaveEmployeeSelect');
+        const leaveTypeSelect = document.getElementById('leaveTypeSelect');
+        const leaveStartDateInput = document.getElementById('leaveStartDate');
+        const leaveEndDateInput = document.getElementById('leaveEndDate');
+        const requestLeaveBtn = document.getElementById('requestLeaveBtn');
+        const leaveRequestsTableBody = document.getElementById('leaveRequestsTableBody');
+        const leaveBalanceSummary = document.getElementById('leaveBalanceSummary');
+        const noLeaveBalanceMessage = document.getElementById('noLeaveBalanceMessage');
+        const exportLeaveCsvBtn = document.getElementById('exportLeaveCsvBtn');
+
 
         // Function to display messages in a custom centered dialog
-        function showMessage(message, type = 'info') {
+        function showMessage(message, type = 'info', autoDismiss = false, duration = 2000) { // Reduced duration
             messageDialogMessage.textContent = message;
-            // Reset classes first
-            messageDialogTitle.classList.remove('text-green-600', 'text-red-600', 'text-gray-800'); 
+            // Reset classes and apply type-specific classes
+            messageDialogElement.classList.remove('info', 'success', 'error');
+            // All messages now use the red background style
+            messageDialogElement.classList.add('bg-red-700', 'text-white', 'border-2', 'border-red-500');
+            messageDialogTitle.classList.add('text-white'); // Ensure title is white
+
+            // Set title text based on type, but keep styling consistent (red background, white text)
             if (type === 'success') {
                 messageDialogTitle.textContent = "Success!";
-                messageDialogTitle.classList.add('text-green-600'); 
             } else if (type === 'error') {
                 messageDialogTitle.textContent = "Error!";
-                messageDialogTitle.classList.add('text-red-600'); 
-            } else {
+            } else { // 'info' or default
                 messageDialogTitle.textContent = "Notification";
-                messageDialogTitle.classList.add('text-gray-800'); 
             }
             messageDialogBackdrop.classList.remove('hidden');
+
+            // Hide the OK button for auto-dismissing messages
+            if (autoDismiss) {
+                messageDialogCloseBtn.classList.add('hidden');
+                setTimeout(hideMessageDialog, duration);
+            } else {
+                messageDialogCloseBtn.classList.remove('hidden');
+            }
             console.log(`[Message: ${type}] ${message}`); 
         }
 
@@ -703,7 +858,7 @@
         if(deleteSelectedBtn) {
             deleteSelectedBtn.addEventListener('click', () => {
                 if (selectedEntryIds.size === 0) {
-                    showMessage("No entries selected for deletion.", "info");
+                    showMessage("No entries selected for deletion.", "info", true);
                     return;
                 }
 
@@ -721,10 +876,10 @@
                                 showMessage(`Failed to delete entry ${id}. Check console.`, "error");
                             }
                         }
-                        showMessage(`${deletedCount} entries successfully deleted!`, "success");
+                        showMessage(`${deletedCount} entries successfully deleted!`, "success", true); // Auto-dismiss
                         selectedEntryIds.clear(); 
                     } else {
-                        showMessage("Deletion cancelled.", "info");
+                        showMessage("Deletion cancelled.", "info", true); // Auto-dismiss
                     }
                 });
             });
@@ -822,8 +977,10 @@
         // Function to populate the employee dropdown
         function populateEmployeeDropdown() {
             if (!employeeSelect) return; // Safety check
+            if (!leaveEmployeeSelect) return; // Safety check for leave section
 
             employeeSelect.innerHTML = '<option value="">-- Select an Employee --</option>'; // Clear existing options and add default
+            leaveEmployeeSelect.innerHTML = '<option value="">-- Select Employee --</option>';
 
             // Sort team members alphabetically by name
             const sortedMembers = [...predefinedTeamMembers].sort((a, b) => a.name.localeCompare(b.name));
@@ -834,11 +991,13 @@
                 // Display name and ID
                 option.textContent = `${member.name} (${member.id})`; 
                 employeeSelect.appendChild(option);
+                leaveEmployeeSelect.appendChild(option.cloneNode(true)); // Clone for leave section
             });
 
             // If an employee is already logged in, select them in the dropdown
             if (currentLoggedInEmployee) {
                 employeeSelect.value = currentLoggedInEmployee.id;
+                leaveEmployeeSelect.value = currentLoggedInEmployee.id;
             }
         }
 
@@ -893,7 +1052,7 @@
                     name: employee.name,
                     loginTime: new Date()
                 };
-                showMessage(`Logged in as ${currentLoggedInEmployee.name} (${currentLoggedInEmployee.id})!`, "success");
+                showMessage(`Logged in as ${currentLoggedInEmployee.name} (${currentLoggedInEmployee.id})!`, "success", true); // Auto-dismiss
 
                 saveLocalState(); 
                 updateLoginButtons();
@@ -941,7 +1100,7 @@
                         createdAt: new Date().toISOString() 
                     });
                     console.log("Document successfully added to Firestore.");
-                    showMessage(`Logged out. ${newEntry.memberName} (${newEntry.employeeId}) worked ${newEntry.totalHours.toFixed(2)} hours (Overtime: ${newEntry.overtimeHours.toFixed(2)}). Entry saved!`, "success");
+                    showMessage(`Logged out. ${newEntry.memberName} (${newEntry.employeeId}) worked ${newEntry.totalHours.toFixed(2)} hours (Overtime: ${newEntry.overtimeHours.toFixed(2)}). Entry saved!`, "success", true); // Auto-dismiss
                 } catch (e) {
                     console.error("Error adding document to Firestore: ", e);
                     showMessage("Failed to save entry. Please check console for details and Firebase setup.", "error");
@@ -962,7 +1121,7 @@
                     return;
                 }
                 if (extendedHoursEntries.length === 0) {
-                    showMessage("No data to export.", "info");
+                    showMessage("No data to export.", "info", true); // Auto-dismiss
                     return;
                 }
 
@@ -993,7 +1152,7 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                showMessage("Data exported to CSV!", "success");
+                showMessage("Data exported to CSV!", "success", true); // Auto-dismiss
             });
         }
 
@@ -1037,7 +1196,7 @@
                 if(filterStartDateInput) filterStartDateInput.value = '';
                 if(filterEndDateInput) filterEndDateInput.value = '';
                 applyFilter(); 
-                showMessage("Filter cleared!", "info");
+                showMessage("Filter cleared!", "info", true); // Auto-dismiss
             });
         }
 
@@ -1051,7 +1210,7 @@
                     isAdminLoggedIn = true;
                     isAdminMode = true; 
                     adminStatus.textContent = `Admin (${ADMIN_EMPLOYEE_ID}) logged in. Admin Mode Enabled.`;
-                    showMessage("Admin login successful! Admin Mode activated.", "success");
+                    showMessage("Admin login successful! Admin Mode activated.", "success", true); // Auto-dismiss
                 } else {
                     isAdminLoggedIn = false;
                     isAdminMode = false;
@@ -1072,7 +1231,7 @@
                 if(adminIdInput) adminIdInput.value = '';
                 if(adminPasswordInput) adminPasswordInput.value = '';
                 adminStatus.textContent = "Admin logged out.";
-                showMessage("Admin logged out.", "info");
+                showMessage("Admin logged out.", "info", true); // Auto-dismiss
                 saveLocalState();
                 updateAdminUI(); 
                 renderTable(); 
@@ -1087,7 +1246,7 @@
                     saveLocalState();
                     updateAdminUI();
                     renderTable(); 
-                    showMessage(`Admin Mode: ${isAdminMode ? 'Enabled' : 'Disabled'}`, "info");
+                    showMessage(`Admin Mode: ${isAdminMode ? 'Enabled' : 'Disabled'}`, "info", true); // Auto-dismiss
                 } else {
                     showMessage("You must be logged in as an Admin to toggle Admin Mode.", "error");
                 }
@@ -1170,7 +1329,7 @@
                         name: name,
                         createdAt: new Date().toISOString()
                     });
-                    showMessage("Employee added successfully!", "success");
+                    showMessage("Employee added successfully!", "success", true); // Auto-dismiss
                     if(newEmployeeIdInput) newEmployeeIdInput.value = '';
                     if(newEmployeeNameInput) newEmployeeNameInput.value = '';
                 } catch (e) {
@@ -1200,7 +1359,7 @@
                 // If user confirms changing ID, prompt for new ID value
                 showConfirmDialog(`Enter new ID for ${currentName} (current: ${currentId}):`, (idInput) => {
                     if (idInput === null) { // User clicked cancel on the ID prompt
-                        showMessage("Edit cancelled.", "info");
+                        showMessage("Edit cancelled.", "info", true); // Auto-dismiss
                         return;
                     }
                     newId = idInput.trim().toUpperCase() || currentId; // Use currentId if input is empty
@@ -1222,7 +1381,7 @@
                     // If user confirms changing name, prompt for new Name value
                     showConfirmDialog(`Enter new Name for ${newId} (current: ${currentName}):`, (nameInput) => {
                         if (nameInput === null) { // User clicked cancel on the Name prompt
-                            showMessage("Edit cancelled.", "info");
+                            showMessage("Edit cancelled.", "info", true); // Auto-dismiss
                             return;
                         }
                         newName = nameInput.trim() || currentName; // Use currentName if input is empty
@@ -1235,7 +1394,7 @@
 
             async function performUpdate(finalNewId, finalNewName) {
                 if (finalNewId === currentId && finalNewName === currentName) {
-                    showMessage("No changes detected.", "info");
+                    showMessage("No changes detected.", "info", true); // Auto-dismiss
                     return;
                 }
 
@@ -1250,7 +1409,7 @@
                         id: finalNewId,
                         name: finalNewName
                     });
-                    showMessage(`Employee ${currentName} (${currentId}) updated to ${finalNewName} (${finalNewId})!`, "success");
+                    showMessage(`Employee ${currentName} (${currentId}) updated to ${finalNewName} (${finalNewId})!`, "success", true); // Auto-dismiss
                 } catch (e) {
                     console.error("Error updating employee:", e);
                     showMessage("Failed to update employee. Check console.", "error");
@@ -1269,13 +1428,14 @@
                     try {
                         const employeeDocRef = doc(db, `artifacts/${appId}/public/data/teamMembers`, docId);
                         await deleteDoc(employeeDocRef);
-                        showMessage(`${employeeName} deleted successfully!`, "success");
-                    } catch (e) {
+                        showMessage(`${employeeName} deleted successfully!`, "success", true); // Auto-dismiss
+                    }
+                    catch (e) {
                         console.error("Error deleting employee:", e);
                         showMessage("Failed to delete employee. Check console.", "error");
                     }
                 } else {
-                    showMessage("Deletion cancelled.", "info");
+                    showMessage("Deletion cancelled.", "info", true); // Auto-dismiss
                 }
             });
         }
@@ -1319,6 +1479,18 @@
                     deleteColumnHeader.classList.toggle('hidden', !isAdminMode);
                 }
                 if(filterEntriesSection) filterEntriesSection.classList.toggle('hidden', !isAdminMode);
+                if(exportLeaveCsvBtn) exportLeaveCsvBtn.classList.toggle('hidden', !isAdminMode);
+
+
+                // Admin actions for leave requests
+                document.querySelectorAll('.admin-action-column').forEach(el => el.classList.remove('hidden'));
+                document.querySelectorAll('.leave-admin-actions').forEach(el => el.classList.remove('hidden'));
+
+                // Enable/disable leave date inputs based on admin mode
+                if (leaveStartDateInput && leaveEndDateInput) {
+                    leaveStartDateInput.readOnly = false;
+                    leaveEndDateInput.readOnly = false;
+                }
 
             } else {
                 if(toggleAdminModeBtn) toggleAdminModeBtn.classList.add('hidden');
@@ -1336,6 +1508,20 @@
                     if (deleteColumnHeader) deleteColumnHeader.classList.add('hidden');
                 }
                 if(filterEntriesSection) filterEntriesSection.classList.add('hidden');
+                if(exportLeaveCsvBtn) exportLeaveCsvBtn.classList.add('hidden');
+
+
+                // Hide admin actions for leave requests
+                document.querySelectorAll('.admin-action-column').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.leave-admin-actions').forEach(el => el.classList.add('hidden'));
+
+                // Disable past dates for employees in leave form
+                if (leaveStartDateInput && leaveEndDateInput) {
+                    const today = new Date().toISOString().split('T')[0];
+                    leaveStartDateInput.setAttribute('min', today);
+                    leaveEndDateInput.setAttribute('min', today);
+                    // No longer setting readOnly, just min attribute for future dates
+                }
             }
         }
 
@@ -1344,7 +1530,7 @@
             if (enabled) {
                 document.documentElement.classList.add('dark');
                 document.documentElement.classList.remove('light');
-                document.body.classList.remove('bg-gray-950', 'text-gray-100');
+                document.body.classList.remove('bg-white', 'text-gray-900');
                 document.body.classList.add('bg-gray-950', 'text-gray-100'); // Ensure dark body background
             } else {
                 document.documentElement.classList.remove('dark');
@@ -1356,6 +1542,8 @@
             renderTable();
             updateSummary();
             updateMonthlyOvertimeReport();
+            renderLeaveRequestsTable(); // Re-render leave table for colors
+            updateLeaveBalancesDisplay(); // Re-render leave balances for colors
         }
 
         if (darkModeToggle) {
@@ -1394,7 +1582,7 @@
                             console.log(`Employee ${member.name} (${member.id}) already exists, skipping seeding.`);
                         }
                     }
-                    showMessage("Predefined team members added to database!", "success");
+                    showMessage("Predefined team members added to database!", "success", true); // Auto-dismiss
                 } else {
                     console.log("Team members collection is not empty. Skipping seeding.");
                 }
@@ -1402,6 +1590,319 @@
                 console.error("Error seeding team members:", e);
                 showMessage("Failed to seed predefined team members. Check console.", "error");
             }
+        }
+
+        // --- Leave Management Functions ---
+
+        // Helper to calculate days between two dates (inclusive)
+        function calculateLeaveDays(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            if (start > end) return 0;
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 for inclusive
+            return diffDays;
+        }
+
+        // Function to render leave requests table
+        function renderLeaveRequestsTable() {
+            if (!leaveRequestsTableBody) return;
+            leaveRequestsTableBody.innerHTML = '';
+
+            if (leaveRecords.length === 0) {
+                const noDataRow = document.createElement('tr');
+                noDataRow.innerHTML = `<td colspan="7" class="px-6 py-4 text-center text-sm text-gray-400">No leave requests.</td>`;
+                leaveRequestsTableBody.appendChild(noDataRow);
+                return;
+            }
+
+            leaveRecords.forEach((record, index) => {
+                const row = document.createElement('tr');
+                row.className = index % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800'; 
+
+                let statusColorClass = 'text-gray-300';
+                if (record.status === 'Approved') {
+                    statusColorClass = 'text-green-400';
+                } else if (record.status === 'Rejected') {
+                    statusColorClass = 'text-red-400';
+                } else if (record.status === 'Pending') {
+                    statusColorClass = 'text-yellow-400';
+                }
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">${record.memberName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${record.leaveType}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${new Date(record.startDate).toLocaleDateString('en-GB')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${new Date(record.endDate).toLocaleDateString('en-GB')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${record.daysRequested}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${statusColorClass}">${record.status}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium admin-action-column ${isAdminMode ? '' : 'hidden'}">
+                        ${record.status === 'Pending' ? `
+                            <button data-id="${record.id}" class="approve-leave-btn bg-green-600 text-white px-3 py-1 rounded-md shadow-sm hover:bg-green-700 mr-2">Approve</button>
+                            <button data-id="${record.id}" class="reject-leave-btn bg-red-600 text-white px-3 py-1 rounded-md shadow-sm hover:bg-red-700">Reject</button>
+                        ` : ''}
+                        ${record.status !== 'Pending' && isAdminMode ? `
+                            <button data-id="${record.id}" class="delete-leave-btn bg-gray-600 text-white px-3 py-1 rounded-md shadow-sm hover:bg-gray-700">Delete</button>
+                        ` : ''}
+                    </td>
+                `;
+                leaveRequestsTableBody.appendChild(row);
+            });
+
+            document.querySelectorAll('.approve-leave-btn').forEach(button => {
+                button.addEventListener('click', handleApproveLeave);
+            });
+            document.querySelectorAll('.reject-leave-btn').forEach(button => {
+                button.addEventListener('click', handleRejectLeave);
+            });
+            document.querySelectorAll('.delete-leave-btn').forEach(button => {
+                button.addEventListener('click', handleDeleteLeave);
+            });
+            updateAdminUI(); // Ensure admin actions column visibility is correct
+        }
+
+        // Function to update leave balance display
+        function updateLeaveBalancesDisplay() {
+            if (!leaveBalanceSummary) return;
+            leaveBalanceSummary.innerHTML = '';
+
+            // Recalculate balances based on *all* leave records
+            const currentBalances = {};
+            predefinedTeamMembers.forEach(member => {
+                currentBalances[member.id] = { ...INITIAL_LEAVE_BALANCE }; // Start with initial
+            });
+
+            leaveRecords.forEach(record => {
+                if (record.status === 'Approved' && record.leaveType !== 'Unpaid') {
+                    if (currentBalances[record.employeeId] && currentBalances[record.employeeId][record.leaveType] !== undefined) {
+                        currentBalances[record.employeeId][record.leaveType] -= record.daysRequested;
+                    }
+                }
+            });
+            leaveBalances = currentBalances; // Update the global leaveBalances
+
+            if (Object.keys(leaveBalances).length === 0) {
+                noLeaveBalanceMessage.classList.remove('hidden');
+                leaveBalanceSummary.appendChild(noLeaveBalanceMessage);
+                return;
+            } else {
+                noLeaveBalanceMessage.classList.add('hidden');
+            }
+
+            for (const employeeId in leaveBalances) {
+                const employeeName = predefinedTeamMembers.find(m => m.id === employeeId)?.name || employeeId;
+                const balance = leaveBalances[employeeId];
+                
+                const card = document.createElement('div');
+                card.className = 'bg-gray-800 p-4 rounded-lg shadow';
+                card.innerHTML = `<h5 class="text-lg font-semibold text-blue-300 mb-2">${employeeName} (${employeeId})</h5>`;
+                
+                const ul = document.createElement('ul');
+                ul.className = 'list-disc list-inside text-gray-200 text-sm';
+                for (const type in balance) {
+                    ul.innerHTML += `<li>${type}: ${balance[type]} days</li>`;
+                }
+                card.appendChild(ul);
+                leaveBalanceSummary.appendChild(card);
+            }
+        }
+
+        // Handle Request Leave Button Click
+        if(requestLeaveBtn) {
+            requestLeaveBtn.addEventListener('click', async () => {
+                const employeeId = leaveEmployeeSelect.value;
+                const leaveType = leaveTypeSelect.value;
+                const startDate = leaveStartDateInput.value;
+                const endDate = leaveEndDateInput.value;
+
+                if (!employeeId || !leaveType || !startDate || !endDate) {
+                    showMessage("Please fill all leave request fields.", "error");
+                    return;
+                }
+
+                const daysRequested = calculateLeaveDays(startDate, endDate);
+                if (daysRequested <= 0) {
+                    showMessage("End Date must be after or same as Start Date.", "error");
+                    return;
+                }
+
+                const employeeName = predefinedTeamMembers.find(m => m.id === employeeId)?.name;
+                if (!employeeName) {
+                    showMessage("Selected employee not found.", "error");
+                    return;
+                }
+
+                // No longer checking for insufficient balance here, as per "no fixed limits"
+                // if (leaveType !== 'Unpaid' && leaveBalances[employeeId] && leaveBalances[employeeId][leaveType] < daysRequested) {
+                //     showMessage(`Insufficient ${leaveType} balance for ${employeeName}. Requested: ${daysRequested}, Available: ${leaveBalances[employeeId][leaveType]}.`, "error");
+                //     return;
+                // }
+
+                try {
+                    const leaveCollectionRef = collection(db, `artifacts/${appId}/public/data/leaveRecords`);
+                    await addDoc(leaveCollectionRef, {
+                        employeeId: employeeId,
+                        memberName: employeeName,
+                        leaveType: leaveType,
+                        startDate: startDate,
+                        endDate: endDate,
+                        daysRequested: daysRequested,
+                        status: 'Pending', // Default status
+                        requestedAt: new Date().toISOString()
+                    });
+                    showMessage("Leave request submitted successfully!", "success", true); // Auto-dismiss
+                    // Clear form
+                    leaveEmployeeSelect.value = '';
+                    leaveTypeSelect.value = '';
+                    leaveStartDateInput.value = '';
+                    leaveEndDateInput.value = '';
+                } catch (e) {
+                    console.error("Error submitting leave request:", e);
+                    showMessage("Failed to submit leave request. Check console.", "error");
+                }
+            });
+        }
+
+        // Handle Approve Leave
+        async function handleApproveLeave(event) {
+            const docId = event.target.dataset.id;
+            showConfirmDialog("Are you sure you want to APPROVE this leave request?", async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const leaveDocRef = doc(db, `artifacts/${appId}/public/data/leaveRecords`, docId);
+                        const leaveRecord = leaveRecords.find(rec => rec.id === docId);
+
+                        if (leaveRecord && leaveRecord.status === 'Pending') {
+                            // No longer checking for insufficient balance here, as per "no fixed limits"
+                            // const employeeId = leaveRecord.employeeId;
+                            // const leaveType = leaveRecord.leaveType;
+                            // const daysRequested = leaveRecord.daysRequested;
+                            // if (leaveType !== 'Unpaid' && leaveBalances[employeeId] && leaveBalances[employeeId][leaveType] < daysRequested) {
+                            //     showMessage(`Cannot approve: Insufficient ${leaveType} balance for ${leaveRecord.memberName}.`, "error");
+                            //     return;
+                            // }
+
+                            await updateDoc(leaveDocRef, {
+                                status: 'Approved',
+                                approvedBy: currentLoggedInEmployee ? currentLoggedInEmployee.id : 'Admin', // Use actual admin ID if available
+                                approvedAt: new Date().toISOString()
+                            });
+                            showMessage("Leave request approved!", "success", true); // Auto-dismiss
+                        } else {
+                            showMessage("Cannot approve a non-pending leave request.", "error");
+                        }
+                    } catch (e) {
+                        console.error("Error approving leave:", e);
+                        showMessage("Failed to approve leave. Check console.", "error");
+                    }
+                } else {
+                    showMessage("Leave approval cancelled.", "info", true); // Auto-dismiss
+                }
+            });
+        }
+
+        // Handle Reject Leave
+        async function handleRejectLeave(event) {
+            const docId = event.target.dataset.id;
+            showConfirmDialog("Are you sure you want to REJECT this leave request?", async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const leaveDocRef = doc(db, `artifacts/${appId}/public/data/leaveRecords`, docId);
+                        await updateDoc(leaveDocRef, {
+                            status: 'Rejected',
+                            approvedBy: currentLoggedInEmployee ? currentLoggedInEmployee.id : 'Admin', // Use actual admin ID if available
+                            approvedAt: new Date().toISOString()
+                        });
+                        showMessage("Leave request rejected!", "success", true); // Auto-dismiss
+                    } catch (e) {
+                        console.error("Error rejecting leave:", e);
+                        showMessage("Failed to reject leave. Check console.", "error");
+                    }
+                } else {
+                    showMessage("Leave rejection cancelled.", "info", true); // Auto-dismiss
+                }
+            });
+        }
+
+        // Handle Delete Leave (for non-pending leaves, or if admin wants to remove any)
+        async function handleDeleteLeave(event) {
+            const docId = event.target.dataset.id;
+            showConfirmDialog("Are you sure you want to DELETE this leave record? This action cannot be undone.", async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const leaveDocRef = doc(db, `artifacts/${appId}/public/data/leaveRecords`, docId);
+                        await deleteDoc(leaveDocRef);
+                        showMessage("Leave record deleted!", "success", true); // Auto-dismiss
+                    } catch (e) {
+                        console.error("Error deleting leave record:", e);
+                        showMessage("Failed to delete leave record. Check console.", "error");
+                    }
+                } else {
+                    showMessage("Leave record deletion cancelled.", "info", true); // Auto-dismiss
+                }
+            });
+        }
+
+        // Function to export leave data to CSV
+        if(exportLeaveCsvBtn) {
+            exportLeaveCsvBtn.addEventListener('click', () => {
+                if (!isAdminLoggedIn || !isAdminMode) { 
+                    showMessage("You must be logged in as an Admin and Admin Mode must be enabled to export leave data.", "error");
+                    return;
+                }
+                if (leaveRecords.length === 0) {
+                    showMessage("No leave data to export.", "info", true);
+                    return;
+                }
+
+                let csvContent = "Employee Name,Employee ID,Leave Type,Start Date,End Date,Days Requested,Status,Requested At,Approved By,Approved At\n"; 
+
+                leaveRecords.forEach(record => {
+                    const row = [
+                        record.memberName,
+                        record.employeeId,
+                        record.leaveType,
+                        new Date(record.startDate).toLocaleDateString('en-GB'),
+                        new Date(record.endDate).toLocaleDateString('en-GB'),
+                        record.daysRequested,
+                        record.status,
+                        new Date(record.requestedAt).toLocaleString('en-GB'),
+                        record.approvedBy || 'N/A',
+                        record.approvedAt ? new Date(record.approvedAt).toLocaleString('en-GB') : 'N/A',
+                    ].map(item => `"${item}"`).join(','); 
+                    csvContent += row + "\n";
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute('download', 'employee_leave_data.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showMessage("Leave data exported to CSV!", "success", true);
+            });
+        }
+
+        // Calculate Leave Balances (still calculates but doesn't enforce limits)
+        function calculateLeaveBalances() {
+            const balances = {};
+
+            // Initialize balances for all known employees
+            predefinedTeamMembers.forEach(member => {
+                balances[member.id] = { ...INITIAL_LEAVE_BALANCE };
+            });
+
+            // Apply approved leaves
+            leaveRecords.forEach(record => {
+                if (record.status === 'Approved' && record.leaveType !== 'Unpaid') {
+                    if (balances[record.employeeId] && balances[record.employeeId][record.leaveType] !== undefined) {
+                        balances[record.employeeId][record.leaveType] -= record.daysRequested;
+                    }
+                }
+            });
+            leaveBalances = balances;
+            updateLeaveBalancesDisplay();
         }
 
 
@@ -1423,14 +1924,14 @@
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         currentUserId = user.uid;
-                        if(currentUserIdDisplay) currentUserIdDisplay.textContent = currentUserId;
+                        // if(currentUserIdDisplay) currentUserIdDisplay.textContent = currentUserId; // User ID display is now hidden
                         console.log("Firebase authenticated. User ID:", currentUserId);
                         // Call seed function after auth is ready and db is available
                         await seedTeamMembersIfEmpty(); 
                         setupFirestoreListeners(); 
                     } else {
                         currentUserId = null;
-                        if(currentUserIdDisplay) currentUserIdDisplay.textContent = 'Not authenticated';
+                        // if(currentUserIdDisplay) currentUserIdDisplay.textContent = 'Not authenticated'; // User ID display is now hidden
                         console.log("Firebase: No user signed in. Attempting anonymous sign-in.");
                         try {
                             await signInAnonymously(auth); 
@@ -1527,9 +2028,40 @@
                 if (!adminSettingsModalBackdrop.classList.contains('hidden')) {
                     renderManageEmployeesTable(); 
                 }
+                calculateLeaveBalances(); // Recalculate balances when team members change
             }, (error) => {
                 console.error("Error listening to teamMembers Firestore:", error);
                 showMessage("Error loading team members from database. Check console for details.", "error");
+            });
+
+            console.log(`Setting up Firestore listener for leaveRecords collection: artifacts/${appId}/public/data/leaveRecords`);
+            const leaveRecordsQuery = query(collection(db, `artifacts/${appId}/public/data/leaveRecords`), orderBy("requestedAt", "asc"));
+            onSnapshot(leaveRecordsQuery, (snapshot) => {
+                console.log("Firestore (leaveRecords) data received. Processing snapshot...");
+                const fetchedLeaveRecords = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    fetchedLeaveRecords.push({
+                        id: doc.id,
+                        employeeId: data.employeeId,
+                        memberName: data.memberName,
+                        leaveType: data.leaveType,
+                        startDate: data.startDate,
+                        endDate: data.endDate,
+                        daysRequested: data.daysRequested,
+                        status: data.status,
+                        requestedAt: data.requestedAt,
+                        approvedBy: data.approvedBy || null,
+                        approvedAt: data.approvedAt || null
+                    });
+                });
+                leaveRecords = fetchedLeaveRecords;
+                console.log("Leave records updated from Firestore:", leaveRecords);
+                renderLeaveRequestsTable();
+                calculateLeaveBalances();
+            }, (error) => {
+                console.error("Error listening to leaveRecords Firestore:", error);
+                showMessage("Error loading leave records from database. Check console for details.", "error");
             });
         }
     </script>
