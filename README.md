@@ -1,5 +1,4 @@
-# Ardur-Team-Tracker
-<!DOCTYPE html>
+<RUSHI>
 <html lang="en" class="light"> <!-- Default to light mode -->
 <head>
     <meta charset="UTF-8">
@@ -315,9 +314,8 @@
         // State variable for admin login status (separate from employee login)
         let isAdminLoggedIn = false;
 
-        // State variables for Admin Mode and Dark Mode
+        // State variable for Admin Mode
         let isAdminMode = false;
-        let darkModeEnabled = false; // Still exists for local storage persistence, but no longer toggled by UI
 
         // DOM Elements - Employee Login
         const loginMemberIdInput = document.getElementById('loginMemberId');
@@ -346,8 +344,6 @@
 
         const toggleAdminModeBtn = document.getElementById('toggleAdminModeBtn');
         const adminSettingsBtn = document.getElementById('adminSettingsBtn');
-        // Removed: const toggleDarkModeBtn = document.getElementById('toggleDarkModeBtn'); // This line was removed
-        // Removed: const darkModeIndicator = document.getElementById('darkModeIndicator');
 
         // DOM Elements - Multi-Delete
         const selectAllCheckboxes = document.getElementById('selectAllCheckboxes');
@@ -446,7 +442,6 @@
                         };
                         console.log("Local state: Logged in employee loaded.", currentLoggedInEmployee);
                     }
-                    // Removed: darkModeEnabled = parsedData.darkModeEnabled || false;
                     isAdminMode = parsedData.isAdminMode || false; // Load admin mode state
                     isAdminLoggedIn = parsedData.isAdminLoggedIn || false; // Load admin login state
                     console.log("Local state: Admin mode?", isAdminMode, "Admin logged in?", isAdminLoggedIn);
@@ -454,7 +449,6 @@
                 } catch (e) {
                     console.error("Error parsing local state from localStorage:", e);
                     currentLoggedInEmployee = null;
-                    // Removed: darkModeEnabled = false;
                     isAdminMode = false;
                     isAdminLoggedIn = false;
                     showMessage("Error loading saved preferences. Resetting local settings.", "error");
@@ -462,13 +456,11 @@
             } else {
                 console.log("No local state found in localStorage.");
                 currentLoggedInEmployee = null;
-                // Removed: darkModeEnabled = false;
                 isAdminMode = false;
                 isAdminLoggedIn = false;
             }
             updateLoginButtons(); // Update button states after loading local state
             updateAdminUI(); // Update admin specific UI
-            // Removed: applyDarkMode(darkModeEnabled); // Apply dark mode state
         }
 
         // Function to save local preferences to Local Storage
@@ -479,7 +471,6 @@
                     name: currentLoggedInEmployee.name,
                     loginTime: currentLoggedInEmployee.loginTime.toISOString() // Store Date as ISO string
                 } : null,
-                // Removed: darkModeEnabled: darkModeEnabled,
                 isAdminMode: isAdminMode, // Save admin mode state
                 isAdminLoggedIn: isAdminLoggedIn // Save admin login state
             };
@@ -958,21 +949,13 @@
             }
         }
 
-        // Removed: Function to toggle Dark Mode
-        // Removed: function toggleDarkMode() { ... }
-
         // Keeping applyDarkMode for initial load, but it no longer toggles
         function applyDarkMode(enabled) {
             // This function now just ensures the initial state is light mode
             // as dark mode toggle functionality has been removed.
             document.documentElement.classList.remove('dark');
             document.documentElement.classList.add('light');
-            // Removed: toggleDarkModeBtn.textContent = 'Toggle Dark Mode';
         }
-
-
-        // Event listener for toggle Dark Mode button (now just a placeholder/removed)
-        // Removed: toggleDarkModeBtn.addEventListener('click', toggleDarkMode);
 
 
         // Initialize Firebase and set up Firestore listener
