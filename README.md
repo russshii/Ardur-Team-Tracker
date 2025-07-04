@@ -1,4 +1,4 @@
-<RUSHI>
+<!DOCTYPE html>
 <html lang="en" class="light"> <!-- Default to light mode -->
 <head>
     <meta charset="UTF-8">
