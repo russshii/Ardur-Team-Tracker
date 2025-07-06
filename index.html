@@ -123,7 +123,8 @@
             z-index: 10000; /* Even higher z-index */
         }
         .admin-settings-modal {
-            @apply bg-gray-800 p-8 rounded-lg shadow-2xl max-w-2xl w-11/12 text-left overflow-y-auto max-h-[90vh] border-2 border-emerald-600; /* Added stronger border */
+            /* This will be the inner container with max-width and scrollability */
+            @apply bg-gray-800 rounded-lg w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] border-2 border-emerald-600; /* Added stronger border */
         }
         .admin-settings-modal h3 {
             @apply text-gray-100 text-3xl font-bold mb-6; /* Larger title */
@@ -134,8 +135,15 @@
         .admin-settings-modal pre {
             @apply bg-gray-700 p-4 rounded-md text-sm overflow-x-auto;
         }
+        .admin-settings-modal .scrollable-content {
+            @apply overflow-y-auto p-4 space-y-6;
+        }
+        .admin-settings-modal .modal-footer {
+            @apply p-4 border-t border-gray-700 flex justify-end;
+        }
         .admin-settings-modal button {
-            @apply mt-6 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-md shadow-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out;
+            /* Default button style for modal, can be overridden by specific buttons */
+            @apply px-6 py-3 bg-emerald-600 text-white font-semibold rounded-md shadow-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out;
         }
 
         /* Dark Mode Toggle Switch CSS */
@@ -190,6 +198,14 @@
     </style>
 </head>
 <body class="p-4 sm:p-6 md:p-8">
+    <!-- Visual Error Alert Banner -->
+    <div id="visualError" class="hidden flex items-center bg-red-600 text-white text-sm font-medium px-4 py-3 rounded-lg shadow mb-4">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+        <span id="visualErrorMessage">This is a visual error message.</span>
+    </div>
+
     <!-- Message Dialog -->
     <div id="messageDialogBackdrop" class="message-dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="messageDialogTitle">
         <div id="messageDialog" class="message-dialog">
@@ -216,44 +232,76 @@
     <!-- Admin Settings Modal -->
     <div id="adminSettingsModalBackdrop" class="admin-settings-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="adminSettingsTitle">
         <div id="adminSettingsModal" class="admin-settings-modal">
-            <h3 id="adminSettingsTitle">Admin Settings</h3>
+            <div class="p-6"> <!-- Padding for the header/title area -->
+                <h3 id="adminSettingsTitle">Admin Settings</h3>
+            </div>
             
-            <!-- Add New Employee Form -->
-            <div class="mb-8 p-4 border border-gray-700 rounded-md">
-                <h4 class="text-xl font-semibold mb-4 text-gray-200">Add New Employee</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label for="newEmployeeId" class="block text-sm font-medium text-gray-300 mb-1">Employee ID</label>
-                        <input type="text" id="newEmployeeId" placeholder="e.g., AT0005" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-gray-100">
+            <div class="overflow-y-auto p-4 space-y-6 flex-grow"> <!-- Scrollable content area -->
+                <!-- Add New Employee Form -->
+                <div class="p-4 border border-gray-700 rounded-md">
+                    <h4 class="text-xl font-semibold mb-4 text-gray-200">Add New Employee</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="newEmployeeId" class="block text-sm font-medium text-gray-300 mb-1">Employee ID</label>
+                            <input type="text" id="newEmployeeId" placeholder="e.g., AT0005" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-gray-100">
+                            <p id="newEmployeeIdError" class="text-red-500 text-sm mt-1 hidden">Employee ID is required.</p>
+                        </div>
+                        <div>
+                            <label for="newEmployeeName" class="block text-sm font-medium text-gray-300 mb-1">Employee Name</label>
+                            <input type="text" id="newEmployeeName" placeholder="e.g., John Doe" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-gray-100">
+                            <p id="newEmployeeNameError" class="text-red-500 text-sm mt-1 hidden">Employee Name is required.</p>
+                        </div>
                     </div>
-                    <div>
-                        <label for="newEmployeeName" class="block text-sm font-medium text-gray-300 mb-1">Employee Name</label>
-                        <input type="text" id="newEmployeeName" placeholder="e.g., John Doe" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-gray-100">
+                    <button id="addEmployeeBtn" type="button" class="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-md shadow-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out">Add Employee</button>
+                </div>
+
+                <!-- Manage Existing Employees Table -->
+                <div class="mb-4">
+                    <h4 class="text-xl font-semibold mb-4 text-gray-200">Manage Existing Employees</h4>
+                    <div class="overflow-x-auto rounded-lg shadow-md max-h-60">
+                        <table class="min-w-full divide-y divide-gray-700">
+                            <thead class="bg-gray-700 sticky top-0">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">ID</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="manageEmployeesTableBody" class="bg-gray-800 divide-y divide-gray-700">
+                                <!-- Employee list will be dynamically inserted here -->
+                                <tr><td colspan="3" class="px-6 py-4 text-center text-gray-400">Loading employees...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <button id="addEmployeeBtn" type="button" class="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-md shadow-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out">Add Employee</button>
+
+                <!-- Change Admin PIN Section -->
+                <div class="p-4 border border-gray-700 rounded-md">
+                    <h4 class="text-xl font-semibold mb-4 text-gray-200">Change Admin PIN</h4>
+                    <div class="grid grid-cols-1 gap-4 mb-4">
+                        <div>
+                            <label for="oldPinInput" class="block text-sm font-medium text-gray-300 mb-1">Old PIN</label>
+                            <input type="password" id="oldPinInput" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-gray-100">
+                            <p id="oldPinError" class="text-red-500 text-sm mt-1 hidden">Old PIN is incorrect.</p>
+                        </div>
+                        <div>
+                            <label for="newPinInput" class="block text-sm font-medium text-gray-300 mb-1">New PIN</label>
+                            <input type="password" id="newPinInput" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-gray-100">
+                            <p id="newPinError" class="text-red-500 text-sm mt-1 hidden">New PIN must be at least 4 characters.</p>
+                        </div>
+                        <div>
+                            <label for="confirmNewPinInput" class="block text-sm font-medium text-gray-300 mb-1">Confirm New PIN</label>
+                            <input type="password" id="confirmNewPinInput" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-gray-100">
+                            <p id="confirmNewPinError" class="text-red-500 text-sm mt-1 hidden">New PINs do not match.</p>
+                        </div>
+                    </div>
+                    <button id="updatePinBtn" type="button" class="px-4 py-2 bg-purple-600 text-white font-semibold rounded-md shadow-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out">Update PIN</button>
+                </div>
             </div>
 
-            <!-- Manage Existing Employees Table -->
-            <div class="mb-4">
-                <h4 class="text-xl font-semibold mb-4 text-gray-200">Manage Existing Employees</h4>
-                <div class="overflow-x-auto rounded-lg shadow-md max-h-60">
-                    <table class="min-w-full divide-y divide-gray-700">
-                        <thead class="bg-gray-700 sticky top-0">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">ID</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="manageEmployeesTableBody" class="bg-gray-800 divide-y divide-gray-700">
-                            <!-- Employee list will be dynamically inserted here -->
-                            <tr><td colspan="3" class="px-6 py-4 text-center text-gray-400">Loading employees...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="modal-footer"> <!-- Footer for the close button -->
+                <button id="closeAdminSettingsBtn" type="button" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">Close Settings</button>
             </div>
-            <button id="closeAdminSettingsBtn" type="button">Close Settings</button>
         </div>
     </div>
 
@@ -265,18 +313,7 @@
             <p class="text-lg text-gray-400">Efficiently log and track employee extended working hours.</p>
         </header>
 
-        <!-- User ID Display & Dark Mode Toggle -->
-        <!-- Removed 'hidden' class from this div to make it visible -->
-        <div class="mb-6 p-4 rounded-lg bg-gray-600 text-center text-sm text-gray-300 shadow-inner relative">
-            User ID: <span id="currentUserIdDisplay" class="font-semibold text-gray-100">Loading...</span>
-            <div class="absolute top-1/2 -translate-y-1/2 right-4 flex items-center space-x-2">
-                <span class="text-gray-300">Dark Mode</span>
-                <label class="switch">
-                    <input type="checkbox" id="darkModeToggle" checked aria-label="Toggle dark mode"> <!-- Checked by default for dark mode -->
-                    <span class="slider round"></span>
-                </label>
-            </div>
-        </div>
+        <!-- Removed User ID Display & Dark Mode Toggle -->
 
         <!-- Admin Access Section - Solid dark red background from image -->
         <section id="adminAccessSection" class="mb-10 p-6 admin-panel-solid">
@@ -285,6 +322,7 @@
                 <div>
                     <label for="adminPinInput" class="block text-sm font-medium text-gray-200 mb-1">Admin PIN</label>
                     <input type="password" id="adminPinInput" placeholder="Enter PIN" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 bg-gray-200 text-gray-900">
+                    <p id="adminPinError" class="text-red-500 text-sm mt-1 hidden">Invalid PIN entered.</p>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4 col-span-2"> <!-- Adjusted column span -->
                     <button id="adminLoginBtn" type="button" class="flex-1 px-6 py-3 bg-red-700 text-white font-semibold rounded-lg shadow-sm hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300 ease-in-out">Admin Login</button>
@@ -358,6 +396,7 @@
                             <option value="">-- Select Employee --</option>
                             <!-- Employee options will be dynamically inserted here -->
                         </select>
+                        <p id="leaveEmployeeSelectError" class="text-red-500 text-sm mt-1 hidden">Please select an employee.</p>
                     </div>
                     <div>
                         <label for="leaveTypeSelect" class="block text-sm font-medium text-gray-300 mb-1">Leave Type</label>
@@ -368,14 +407,17 @@
                             <option value="Casual">Casual Leave</option>
                             <option value="Unpaid">Unpaid Leave</option>
                         </select>
+                        <p id="leaveTypeSelectError" class="text-red-500 text-sm mt-1 hidden">Please select a leave type.</p>
                     </div>
                     <div>
                         <label for="leaveStartDate" class="block text-sm font-medium text-gray-300 mb-1">Start Date</label>
                         <input type="date" id="leaveStartDate" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-200 text-gray-900">
+                        <p id="leaveStartDateError" class="text-red-500 text-sm mt-1 hidden">Start date is required.</p>
                     </div>
                     <div>
                         <label for="leaveEndDate" class="block text-sm font-medium text-gray-300 mb-1">End Date</label>
                         <input type="date" id="leaveEndDate" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-200 text-gray-900">
+                        <p id="leaveEndDateError" class="text-red-500 text-sm mt-1 hidden">End date is required and must be after start date.</p>
                     </div>
                 </div>
                 <button id="requestLeaveBtn" type="button" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">Request Leave</button>
@@ -399,7 +441,7 @@
                         </thead>
                         <tbody id="leaveRequestsTableBody" class="divide-y divide-gray-700">
                             <!-- Leave requests will be dynamically inserted here -->
-                            <tr><td colspan="7" class="px-6 py-4 text-center text-gray-400">No leave requests.</td></tr>
+                            <tr><td colspan="7" class="px-6 py-4 text-center text-sm text-gray-400">No leave requests.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -427,10 +469,12 @@
                 <div>
                     <label for="filterStartDate" class="block text-sm font-medium text-gray-300 mb-1">From Date</label>
                     <input type="date" id="filterStartDate" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-gray-200 text-gray-900">
+                    <p id="filterStartDateError" class="text-red-500 text-sm mt-1 hidden">Invalid start date.</p>
                 </div>
                 <div>
                     <label for="filterEndDate" class="block text-sm font-medium text-gray-300 mb-1">To Date</label>
                     <input type="date" id="filterEndDate" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-gray-200 text-gray-900">
+                    <p id="filterEndDateError" class="text-red-500 text-sm mt-1 hidden">Invalid end date.</p>
                 </div>
             </div>
             <div class="mt-6 flex justify-end space-x-4">
@@ -492,12 +536,41 @@
         Made By – RK Ardur Team
     </footer>
 
+    <!-- Toast Notifications Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 space-y-2 z-50"></div>
+
+    <!-- Confirmation Modal for Employee Edit -->
+    <div id="confirmEditModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-sm space-y-4 shadow-lg">
+            <p class="text-gray-200 text-lg text-center">Are you sure you want to edit this employee?</p>
+            <div class="flex justify-end space-x-2">
+                <button id="confirmEditYes" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg font-semibold">Yes</button>
+                <button id="confirmEditNo" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg font-semibold">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form Modal for Employee -->
+    <div id="editFormModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-sm space-y-4 shadow-lg">
+            <h3 class="text-white font-bold text-2xl mb-4 text-center">Edit Employee</h3>
+            <input id="editEmployeeID" placeholder="Employee ID" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500 focus:outline-none"/>
+            <p id="editEmployeeIDError" class="text-red-500 text-sm mt-1 hidden">Employee ID cannot be empty or duplicate.</p>
+            <input id="editEmployeeName" placeholder="Employee Name" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500 focus:outline-none"/>
+            <p id="editEmployeeNameError" class="text-red-500 text-sm mt-1 hidden">Employee Name cannot be empty.</p>
+            <div class="flex justify-end space-x-2 pt-4">
+                <button id="saveEditBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg font-semibold">Save</button>
+                <button id="cancelEditBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg font-semibold">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         // Firebase Imports (required for cloud database)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
         // Only import necessary Firebase Auth functions for anonymous sign-in
         import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDocs, where } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDocs, where, setDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
         // Firebase Initialization Variables
         let app;
@@ -534,8 +607,10 @@
             { id: "AT0000", name: "Vishal" } // Added Vishal with a placeholder ID, assuming it was missing
         ]; 
 
-        // The Admin PIN for authentication
-        const ADMIN_PIN = "123456"; 
+        // The Admin PIN for authentication (will be loaded from Firestore)
+        let storedAdminPin = "123456"; // Default fallback, will be overwritten by Firestore
+
+
         // ---------------------------------------------
 
         // Array to store extended hours entries (populated by Firestore)
@@ -576,6 +651,7 @@
         const adminLoginBtn = document.getElementById('adminLoginBtn');
         const adminLogoutBtn = document.getElementById('adminLogoutBtn');
         const adminStatus = document.getElementById('adminStatus');
+        const adminPinError = document.getElementById('adminPinError'); // Inline error for admin PIN
 
         // DOM Elements - General Controls
         const entriesTableBody = document.getElementById('entriesTableBody');
@@ -587,10 +663,11 @@
         const applyFilterBtn = document.getElementById('applyFilterBtn'); 
         const clearFilterBtn = document.getElementById('clearFilterBtn');
         const noSummaryMessage = document.getElementById('noSummaryMessage');
-        const currentUserIdDisplay = document.getElementById('currentUserIdDisplay');
         const monthlyOvertimeReportSection = document.getElementById('monthlyOvertimeReport');
         const noMonthlyReportMessage = document.getElementById('noMonthlyReportMessage');
         const filterEntriesSection = document.getElementById('filterEntriesSection'); 
+        const filterStartDateError = document.getElementById('filterStartDateError');
+        const filterEndDateError = document.getElementById('filterEndDateError');
 
 
         const toggleAdminModeBtn = document.getElementById('toggleAdminModeBtn');
@@ -607,24 +684,50 @@
         const newEmployeeNameInput = document.getElementById('newEmployeeName');
         const addEmployeeBtn = document.getElementById('addEmployeeBtn');
         const manageEmployeesTableBody = document.getElementById('manageEmployeesTableBody');
+        const newEmployeeIdError = document.getElementById('newEmployeeIdError');
+        const newEmployeeNameError = document.getElementById('newEmployeeNameError');
+
+        // New PIN Change Elements
+        const oldPinInput = document.getElementById('oldPinInput');
+        const newPinInput = document.getElementById('newPinInput');
+        const confirmNewPinInput = document.getElementById('confirmNewPinInput');
+        const updatePinBtn = document.getElementById('updatePinBtn');
+        const oldPinError = document.getElementById('oldPinError');
+        const newPinError = document.getElementById('newPinError');
+        const confirmNewPinError = document.getElementById('confirmNewPinError');
 
 
-        // Confirmation Dialog Elements
+        // Confirmation Dialog Elements (for generic confirmations)
         const confirmDialogBackdrop = document.getElementById('confirmDialogBackdrop');
         const confirmDialogTitle = document.getElementById('confirmDialogTitle');
         const confirmDialogMessage = document.getElementById('confirmDialogMessage');
         const confirmYesBtn = document.getElementById('confirmYesBtn');
         const confirmNoBtn = document.getElementById('confirmNoBtn');
 
-        // Message Dialog Elements
+        // Message Dialog Elements (kept for blocking prompts)
         const messageDialogBackdrop = document.getElementById('messageDialogBackdrop');
         const messageDialogElement = document.getElementById('messageDialog'); // Reference to the dialog itself
         const messageDialogTitle = document.getElementById('messageDialogTitle'); 
         const messageDialogMessage = document.getElementById('messageDialogMessage');
         const messageDialogCloseBtn = document.getElementById('messageDialogCloseBtn');
 
-        // Dark Mode Toggle Element
-        const darkModeToggle = document.getElementById('darkModeToggle');
+        // Visual Error Banner Elements
+        const visualError = document.getElementById('visualError');
+        const visualErrorMessage = document.getElementById('visualErrorMessage');
+
+        // New Modals for Employee Edit Workflow
+        const confirmEditModal = document.getElementById('confirmEditModal');
+        const confirmEditYes = document.getElementById('confirmEditYes');
+        const confirmEditNo = document.getElementById('confirmEditNo');
+
+        const editFormModal = document.getElementById('editFormModal');
+        const editEmployeeID = document.getElementById('editEmployeeID');
+        const editEmployeeName = document.getElementById('editEmployeeName');
+        const saveEditBtn = document.getElementById('saveEditBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const editEmployeeIDError = document.getElementById('editEmployeeIDError');
+        const editEmployeeNameError = document.getElementById('editEmployeeNameError');
+
 
         // Leave Management DOM Elements
         const leaveEmployeeSelect = document.getElementById('leaveEmployeeSelect');
@@ -637,6 +740,11 @@
         const noLeaveBalanceMessage = document.getElementById('noLeaveBalanceMessage');
         const exportLeaveCsvBtn = document.getElementById('exportLeaveCsvBtn');
         const exportLeavePdfBtn = document.getElementById('exportLeavePdfBtn'); // New PDF export button for leave records
+        const leaveEmployeeSelectError = document.getElementById('leaveEmployeeSelectError');
+        const leaveTypeSelectError = document.getElementById('leaveTypeSelectError');
+        const leaveStartDateError = document.getElementById('leaveStartDateError');
+        const leaveEndDateError = document.getElementById('leaveEndDateError');
+
 
         // Dashboard Overview DOM Elements
         const dashboardOverviewSection = document.getElementById('dashboardOverviewSection');
@@ -648,6 +756,13 @@
         let cleanupMessageModal = null;
         let cleanupConfirmModal = null;
         let cleanupAdminSettingsModal = null;
+        let cleanupConfirmEditModal = null; // New cleanup for confirm edit modal
+        let cleanupEditFormModal = null; // New cleanup for edit form modal
+
+        // Variables to hold data for the employee being edited
+        let currentEditEmployeeDocId = null; 
+        let currentEditEmployeeId = null;
+        let currentEditEmployeeName = null;
 
         // Helper function to get all focusable elements within a container
         function getFocusableElements(container) {
@@ -660,7 +775,7 @@
         function setupModalAccessibility(modalBackdropElement, closeCallback) {
             const previouslyFocusedElement = document.activeElement; // Store the element that had focus before opening
 
-            const modalContent = modalBackdropElement.querySelector('.message-dialog, .confirm-dialog, .admin-settings-modal');
+            const modalContent = modalBackdropElement.querySelector('.message-dialog, .confirm-dialog, .admin-settings-modal, .space-y-4'); // Added .space-y-4 for new modals
             if (!modalContent) return null;
 
             const focusableElements = getFocusableElements(modalContent);
@@ -703,8 +818,7 @@
             };
         }
 
-
-        // Function to display messages in a custom centered dialog
+        // Function to display messages in a custom centered dialog (for blocking prompts)
         function showMessage(message, type = 'info', autoDismiss = false, duration = 2000) { // Reduced duration
             messageDialogMessage.textContent = message;
             // Reset classes and apply type-specific classes
@@ -793,6 +907,75 @@
             });
         }
 
+        // --- New Error Handling Components ---
+
+        /**
+         * Displays a toast notification.
+         * @param {string} message - The message to display.
+         * @param {'success'|'error'|'info'} type - The type of toast (determines color).
+         */
+        function showToast(message, type = 'info') {
+            const colors = {
+                success: 'bg-emerald-600',
+                error: 'bg-red-600',
+                info: 'bg-blue-600'
+            };
+            const toast = document.createElement('div');
+            toast.className = `flex items-center ${colors[type]} text-white text-sm font-medium px-4 py-3 rounded-lg shadow transition transform translate-y-0 opacity-100`;
+            toast.innerHTML = `<span>${message}</span>`;
+            document.getElementById('toastContainer').appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => toast.remove(), 300); // Remove after fade out
+            }, 3000); // Display for 3 seconds
+        }
+
+        /**
+         * Displays a persistent visual error banner at the top of the page.
+         * @param {string} message - The error message to display.
+         */
+        function showVisualError(message) {
+            if (visualErrorMessage && visualError) {
+                visualErrorMessage.textContent = message;
+                visualError.classList.remove('hidden');
+            }
+        }
+
+        /**
+         * Hides the visual error banner.
+         */
+        function hideVisualError() {
+            if (visualError) {
+                visualError.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Displays an inline error message next to a form field.
+         * @param {string} id - The ID of the <p> element for the error message.
+         * @param {string} message - The error message to display.
+         */
+        function showInlineError(id, message) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = message;
+                el.classList.remove('hidden');
+            }
+        }
+
+        /**
+         * Hides an inline error message.
+         * @param {string} id - The ID of the <p> element for the error message.
+         */
+        function hideInlineError(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.add('hidden');
+            }
+        }
+
+        // --- End New Error Handling Components ---
+
 
         // Function to load local preferences from Local Storage (not data)
         function loadLocalState() {
@@ -811,12 +994,6 @@
                     }
                     isAdminMode = parsedData.isAdminMode || false; 
                     isAdminLoggedIn = parsedData.isAdminLoggedIn || false; 
-                    // Load dark mode preference
-                    const savedDarkMode = localStorage.getItem('darkModeEnabled');
-                    if (darkModeToggle) {
-                        darkModeToggle.checked = (savedDarkMode === 'true');
-                        applyDarkMode(darkModeToggle.checked);
-                    }
 
                     console.log("Local state: Admin mode?", isAdminMode, "Admin logged in?", isAdminLoggedIn);
 
@@ -825,18 +1002,13 @@
                     currentLoggedInEmployee = null;
                     isAdminMode = false;
                     isAdminLoggedIn = false;
-                    showMessage("Error loading saved preferences. Resetting local settings.", "error");
+                    showToast("Error loading saved preferences. Resetting local settings.", "error");
                 }
             } else {
                 console.log("No local state found in localStorage.");
                 currentLoggedInEmployee = null;
                 isAdminMode = false;
                 isAdminLoggedIn = false;
-                // Default to dark mode if no preference is found
-                if (darkModeToggle) {
-                    darkModeToggle.checked = true;
-                    applyDarkMode(true);
-                }
             }
             updateLoginButtons(); 
             updateAdminUI(); 
@@ -854,7 +1026,6 @@
                 isAdminLoggedIn: isAdminLoggedIn 
             };
             localStorage.setItem('extendedHoursTrackerLocalState', JSON.stringify(dataToSave));
-            localStorage.setItem('darkModeEnabled', darkModeToggle ? darkModeToggle.checked : false); // Save dark mode preference
             console.log("Local state saved to localStorage.", dataToSave);
         }
 
@@ -962,7 +1133,7 @@
         if(deleteSelectedBtn) {
             deleteSelectedBtn.addEventListener('click', () => {
                 if (selectedEntryIds.size === 0) {
-                    showMessage("No entries selected for deletion.", "info", true);
+                    showToast("No entries selected for deletion.", "info");
                     return;
                 }
 
@@ -977,13 +1148,13 @@
                                 deletedCount++;
                             } catch (e) {
                                 console.error(`Error deleting document ${id}:`, e);
-                                showMessage(`Failed to delete entry ${id}. Check console.`, "error");
+                                showToast(`Failed to delete entry ${id}. Check console.`, "error");
                             }
                         }
-                        showMessage(`${deletedCount} entries successfully deleted!`, "success", true); // Auto-dismiss
+                        showToast(`${deletedCount} entries successfully deleted!`, "success"); // Auto-dismiss
                         selectedEntryIds.clear(); 
                     } else {
-                        showMessage("Deletion cancelled.", "info", true); // Auto-dismiss
+                        showToast("Deletion cancelled.", "info"); // Auto-dismiss
                     }
                 });
             });
@@ -1134,20 +1305,20 @@
                 const selectedEmployeeId = employeeSelect ? employeeSelect.value : '';
                 
                 if (!selectedEmployeeId) {
-                    showMessage("Please select an Employee to login.", "error");
+                    showToast("Please select an Employee to login.", "error");
                     return;
                 }
                 
                 const employee = predefinedTeamMembers.find(member => member.id.toUpperCase() === selectedEmployeeId.toUpperCase());
 
                 if (!employee) {
-                    showMessage("Invalid Employee selected. Please select a valid ID from your team.", "error");
+                    showToast("Invalid Employee selected. Please select a valid ID from your team.", "error");
                     if(employeeSelect) employeeSelect.value = ''; 
                     return;
                 }
 
                 if (currentLoggedInEmployee) {
-                    showMessage(`Error: ${currentLoggedInEmployee.name} (${currentLoggedInEmployee.id}) is already logged in. Please log out first.`, "error");
+                    showToast(`Error: ${currentLoggedInEmployee.name} (${currentLoggedInEmployee.id}) is already logged in. Please log out first.`, "error");
                     return;
                 }
 
@@ -1156,7 +1327,7 @@
                     name: employee.name,
                     loginTime: new Date()
                 };
-                showMessage(`Logged in as ${currentLoggedInEmployee.name} (${currentLoggedInEmployee.id})!`, "success", true); // Auto-dismiss
+                showToast(`Logged in as ${currentLoggedInEmployee.name} (${currentLoggedInEmployee.id})!`, "success"); // Auto-dismiss
 
                 saveLocalState(); 
                 updateLoginButtons();
@@ -1167,7 +1338,7 @@
         if(logoutBtn) {
             logoutBtn.addEventListener('click', async () => {
                 if (!currentLoggedInEmployee) {
-                    showMessage("No one is currently logged in.", "error");
+                    showToast("No one is currently logged in.", "error");
                     return;
                 }
 
@@ -1187,7 +1358,7 @@
 
                 try {
                     if (!db) {
-                        showMessage("Database not initialized. Cannot save entry. Please ensure Firebase is configured.", "error");
+                        showToast("Database not initialized. Cannot save entry. Please ensure Firebase is configured.", "error");
                         console.error("Add failed: DB not ready.");
                         return;
                     }
@@ -1204,10 +1375,10 @@
                         createdAt: new Date().toISOString() 
                     });
                     console.log("Document successfully added to Firestore.");
-                    showMessage(`Logged out. ${newEntry.memberName} (${newEntry.employeeId}) worked ${newEntry.totalHours.toFixed(2)} hours (Overtime: ${newEntry.overtimeHours.toFixed(2)}). Entry saved!`, "success", true); // Auto-dismiss
+                    showToast(`Logged out. ${newEntry.memberName} (${newEntry.employeeId}) worked ${newEntry.totalHours.toFixed(2)} hours (Overtime: ${newEntry.overtimeHours.toFixed(2)}). Entry saved!`, "success"); // Auto-dismiss
                 } catch (e) {
                     console.error("Error adding document to Firestore: ", e);
-                    showMessage("Failed to save entry. Please check console for details and Firebase setup.", "error");
+                    showToast("Failed to save entry. Please check console for details and Firebase setup.", "error");
                 }
 
                 currentLoggedInEmployee = null; 
@@ -1221,11 +1392,11 @@
         if(exportCsvBtn) {
             exportCsvBtn.addEventListener('click', () => {
                 if (!isAdminLoggedIn || !isAdminMode) { 
-                    showMessage("You must be logged in as an Admin and Admin Mode must be enabled to export data.", "error");
+                    showToast("You must be logged in as an Admin and Admin Mode must be enabled to export data.", "error");
                     return;
                 }
                 if (extendedHoursEntries.length === 0) {
-                    showMessage("No data to export.", "info", true); // Auto-dismiss
+                    showToast("No data to export.", "info"); // Auto-dismiss
                     return;
                 }
 
@@ -1256,7 +1427,7 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                showMessage("Data exported to CSV!", "success", true); // Auto-dismiss
+                showToast("Data exported to CSV!", "success"); // Auto-dismiss
             });
         }
 
@@ -1264,16 +1435,16 @@
         if(exportPdfBtn) {
             exportPdfBtn.addEventListener('click', async () => {
                 if (!isAdminLoggedIn || !isAdminMode) { 
-                    showMessage("You must be logged in as an Admin and Admin Mode must be enabled to export data.", "error");
+                    showToast("You must be logged in as an Admin and Admin Mode must be enabled to export data.", "error");
                     return;
                 }
                 const tableContainer = document.getElementById('extendedHoursTableContainer');
                 if (!tableContainer || tableContainer.querySelector('tbody').children.length === 0 || tableContainer.querySelector('tbody').children[0].textContent.includes('No entries to display')) {
-                    showMessage("No extended hours data to export to PDF.", "info", true);
+                    showToast("No extended hours data to export to PDF.", "info");
                     return;
                 }
 
-                showMessage("Generating PDF...", "info", true, 5000); // Show message for longer duration
+                showToast("Generating PDF...", "info", true, 5000); // Show message for longer duration
 
                 // Create a temporary clone of the table for PDF generation
                 const originalTable = tableContainer.querySelector('table');
@@ -1355,10 +1526,10 @@
                     pdf.text(footerText, 10, pageHeight - 10);
 
                     pdf.save('extended_hours_report.pdf');
-                    showMessage("Extended Hours Report exported to PDF!", "success", true);
+                    showToast("Extended Hours Report exported to PDF!", "success");
                 } catch (e) {
                     console.error("Error generating PDF:", e);
-                    showMessage("Failed to generate PDF. Check console for details.", "error");
+                    showToast("Failed to generate PDF. Check console for details.", "error");
                 } finally {
                     // Clean up temporary div
                     if (tempDiv.parentNode) {
@@ -1372,16 +1543,16 @@
         if(exportLeavePdfBtn) {
             exportLeavePdfBtn.addEventListener('click', async () => {
                 if (!isAdminLoggedIn || !isAdminMode) { 
-                    showMessage("You must be logged in as an Admin and Admin Mode must be enabled to export leave data.", "error");
+                    showToast("You must be logged in as an Admin and Admin Mode must be enabled to export leave data.", "error");
                     return;
                 }
                 const leaveTableContainer = document.getElementById('leaveTableContainer');
                 if (!leaveTableContainer || leaveTableContainer.querySelector('tbody').children.length === 0 || leaveTableContainer.querySelector('tbody').children[0].textContent.includes('No leave requests')) {
-                    showMessage("No leave records data to export to PDF.", "info", true);
+                    showToast("No leave records data to export to PDF.", "info");
                     return;
                 }
 
-                showMessage("Generating PDF...", "info", true, 5000); // Show message for longer duration
+                showToast("Generating PDF...", "info", true, 5000); // Show message for longer duration
 
                 // Create a temporary clone of the table for PDF generation
                 const originalTable = leaveTableContainer.querySelector('table');
@@ -1457,10 +1628,10 @@
                     pdf.text(footerText, 10, pageHeight - 10);
 
                     pdf.save('employee_leave_report.pdf');
-                    showMessage("Leave Records Report exported to PDF!", "success", true);
+                    showToast("Leave Records Report exported to PDF!", "success");
                 } catch (e) {
                     console.error("Error generating PDF:", e);
-                    showMessage("Failed to generate PDF. Check console for details.", "error");
+                    showToast("Failed to generate PDF. Check console for details.", "error");
                 } finally {
                     // Clean up temporary div
                     if (tempDiv.parentNode) {
@@ -1485,6 +1656,9 @@
 
         // Function to apply filter
         function applyFilter() {
+            hideInlineError('filterStartDateError');
+            hideInlineError('filterEndDateError');
+
             const startDate = filterStartDateInput.value ? new Date(filterStartDateInput.value) : null;
             const endDate = filterEndDateInput.value ? new Date(filterEndDateInput.value) : null;
 
@@ -1492,7 +1666,7 @@
             if (endDate) endDate.setHours(23, 59, 59, 999); 
 
             if (startDate && endDate && startDate > endDate) {
-                showMessage("Filter 'From Date' cannot be after 'To Date'.", "error");
+                showInlineError('filterEndDateError', "To Date cannot be before From Date.");
                 return;
             }
 
@@ -1510,8 +1684,10 @@
             clearFilterBtn.addEventListener('click', () => {
                 if(filterStartDateInput) filterStartDateInput.value = '';
                 if(filterEndDateInput) filterEndDateInput.value = '';
+                hideInlineError('filterStartDateError');
+                hideInlineError('filterEndDateError');
                 applyFilter(); 
-                showMessage("Filter cleared!", "info", true); // Auto-dismiss
+                showToast("Filter cleared!", "info"); // Auto-dismiss
             });
         }
 
@@ -1519,22 +1695,30 @@
         if(adminLoginBtn) {
             adminLoginBtn.addEventListener('click', async () => {
                 const enteredPin = adminPinInput.value.trim();
+                hideInlineError('adminPinError'); // Hide previous error
 
-                if (enteredPin === ADMIN_PIN) {
+                if (enteredPin === storedAdminPin) { // Use storedAdminPin for validation
                     isAdminLoggedIn = true;
                     isAdminMode = true; 
                     adminStatus.textContent = `Admin logged in successfully. Admin Mode Enabled.`;
-                    showMessage("Admin login successful! Admin Mode activated.", "success", true);
+                    showToast("Admin login successful! Admin Mode activated.", "success");
                 } else {
                     isAdminLoggedIn = false;
                     isAdminMode = false;
                     adminStatus.textContent = "Invalid PIN.";
-                    showMessage("Invalid PIN.", "error");
+                    showInlineError('adminPinError', "Invalid PIN entered.");
                 }
                 saveLocalState();
                 updateAdminUI(); 
                 renderTable(); 
                 updateDashboardMetrics(); // Update dashboard on admin login
+            });
+        }
+
+        // Admin PIN input change listener to hide error
+        if (adminPinInput) {
+            adminPinInput.addEventListener('input', () => {
+                hideInlineError('adminPinError');
             });
         }
 
@@ -1546,7 +1730,7 @@
                 isAdminMode = false; 
                 if(adminPinInput) adminPinInput.value = '';
                 adminStatus.textContent = "Admin logged out.";
-                showMessage("Admin logged out.", "info", true); // Auto-dismiss
+                showToast("Admin logged out.", "info"); // Auto-dismiss
                 saveLocalState();
                 updateAdminUI(); 
                 renderTable(); 
@@ -1562,10 +1746,10 @@
                     saveLocalState();
                     updateAdminUI();
                     renderTable(); 
-                    showMessage(`Admin Mode: ${isAdminMode ? 'Enabled' : 'Disabled'}`, "info", true); // Auto-dismiss
+                    showToast(`Admin Mode: ${isAdminMode ? 'Enabled' : 'Disabled'}`, "info"); // Auto-dismiss
                     updateDashboardMetrics(); // Update dashboard on admin mode toggle
                 } else {
-                    showMessage("You must be logged in as an Admin to toggle Admin Mode.", "error");
+                    showToast("You must be logged in as an Admin to toggle Admin Mode.", "error");
                 }
             });
         }
@@ -1576,6 +1760,20 @@
                 if (isAdminLoggedIn && isAdminMode) {
                     renderManageEmployeesTable(); 
                     if(adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.remove('hidden');
+                    // Clear PIN change form errors when opening
+                    hideInlineError('oldPinError');
+                    hideInlineError('newPinError');
+                    hideInlineError('confirmNewPinError');
+                    oldPinInput.value = '';
+                    newPinInput.value = '';
+                    confirmNewPinInput.value = '';
+
+                    // Clear new employee form errors when opening
+                    hideInlineError('newEmployeeIdError');
+                    hideInlineError('newEmployeeNameError');
+                    newEmployeeIdInput.value = '';
+                    newEmployeeNameInput.value = '';
+
                     cleanupAdminSettingsModal = setupModalAccessibility(adminSettingsModalBackdrop, () => {
                         // Custom close logic for admin settings modal
                         if(adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.add('hidden');
@@ -1583,20 +1781,22 @@
                         cleanupAdminSettingsModal = null;
                     });
                 } else {
-                    showMessage("You must be logged in as an Admin and Admin Mode must be enabled to access settings.", "error");
+                    showToast("You must be logged in as an Admin and Admin Mode must be enabled to access settings.", "error");
                 }
             });
         }
 
-        // Function to close Admin Settings Modal
+        // Function to close Admin Settings Modal (global function for onclick)
+        window.closeAdminSettings = function() {
+            if(adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.add('hidden');
+            if (cleanupAdminSettingsModal) {
+                cleanupAdminSettingsModal();
+                cleanupAdminSettingsModal = null;
+            }
+        };
+        // Event listener for close button in the modal footer
         if(closeAdminSettingsBtn) {
-            closeAdminSettingsBtn.addEventListener('click', () => {
-                if(adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.add('hidden');
-                if (cleanupAdminSettingsModal) {
-                    cleanupAdminSettingsModal();
-                    cleanupAdminSettingsModal = null;
-                }
-            });
+            closeAdminSettingsBtn.addEventListener('click', window.closeAdminSettings);
         }
 
         // --- New Functions for Managing Team Members ---
@@ -1618,8 +1818,8 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">${member.id}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${member.name}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button data-id="${member.docId}" data-employee-id="${member.id}" data-employee-name="${member.name}" class="edit-employee-btn text-cyan-400 hover:text-cyan-300 mr-2" aria-label="Edit employee ${member.name}">Edit</button>
-                        <button data-id="${member.docId}" class="delete-employee-btn text-red-500 hover:text-red-400" aria-label="Delete employee ${member.name}">Delete</button>
+                        <button data-doc-id="${member.docId}" data-employee-id="${member.id}" data-employee-name="${member.name}" class="edit-employee-btn bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded font-semibold mr-2" aria-label="Edit employee ${member.name}">Edit</button>
+                        <button data-id="${member.docId}" class="delete-employee-btn text-red-500 hover:text-red-400 font-semibold" aria-label="Delete employee ${member.name}">Delete</button>
                     </td>
                 `;
                 if(manageEmployeesTableBody) manageEmployeesTableBody.appendChild(row);
@@ -1639,13 +1839,21 @@
                 const id = newEmployeeIdInput.value.trim().toUpperCase();
                 const name = newEmployeeNameInput.value.trim();
 
-                if (!id || !name) {
-                    showMessage("Employee ID and Name cannot be empty.", "error");
+                // Clear previous errors
+                hideInlineError('newEmployeeIdError');
+                hideInlineError('newEmployeeNameError');
+
+                if (!id) {
+                    showInlineError("newEmployeeIdError", "Employee ID cannot be empty.");
+                    return;
+                }
+                if (!name) {
+                    showInlineError("newEmployeeNameError", "Employee Name cannot be empty.");
                     return;
                 }
 
                 if (predefinedTeamMembers.some(member => member.id.toUpperCase() === id)) {
-                    showMessage(`Employee ID '${id}' already exists.`, "error");
+                    showInlineError("newEmployeeIdError", `Employee ID '${id}' already exists.`);
                     return;
                 }
 
@@ -1656,93 +1864,148 @@
                         name: name,
                         createdAt: new Date().toISOString()
                     });
-                    showMessage("Employee added successfully!", "success", true); // Auto-dismiss
+                    showToast("Employee added successfully!", "success"); // Auto-dismiss
                     if(newEmployeeIdInput) newEmployeeIdInput.value = '';
                     if(newEmployeeNameInput) newEmployeeNameInput.value = '';
                 } catch (e) {
                     console.error("Error adding employee:", e);
-                    showMessage("Failed to add employee. Check console.", "error");
+                    showToast("Failed to add employee. Check console.", "error");
                 }
             });
         }
 
-        // Handle Edit Employee (opens prompt for new values)
+        // Listen for input changes to hide inline errors for new employee form
+        if (newEmployeeIdInput) {
+            newEmployeeIdInput.addEventListener('input', () => hideInlineError('newEmployeeIdError'));
+        }
+        if (newEmployeeNameInput) {
+            newEmployeeNameInput.addEventListener('input', () => hideInlineError('newEmployeeNameError'));
+        }
+
+        // Function to trigger the confirmation modal for editing an employee
         function handleEditEmployee(event) {
-            const docId = event.target.dataset.id;
-            const currentId = event.target.dataset.employeeId;
-            const currentName = event.target.dataset.employeeName;
+            currentEditEmployeeDocId = event.target.dataset.docId;
+            currentEditEmployeeId = event.target.dataset.employeeId;
+            currentEditEmployeeName = event.target.dataset.employeeName;
 
-            let newId = currentId; // Initialize with current values
-            let newName = currentName;
-
-            // Prompt for new ID
-            showConfirmDialog(`Editing Employee: ${currentName} (${currentId})\n\nDo you want to change the Employee ID?`, (changeIdConfirmed) => {
-                if (!changeIdConfirmed) {
-                    // If user cancels changing ID, proceed to ask about name
-                    askForNewName();
-                    return;
-                }
-
-                // If user confirms changing ID, prompt for new ID value
-                showConfirmDialog(`Enter new ID for ${currentName} (current: ${currentId}):`, (idInput) => {
-                    if (idInput === null) { // User clicked cancel on the ID prompt
-                        showMessage("Edit cancelled.", "info", true); // Auto-dismiss
-                        return;
-                    }
-                    newId = idInput.trim().toUpperCase() || currentId; // Use currentId if input is empty
-
-                    // After getting new ID, proceed to ask about name
-                    askForNewName();
-                });
-            });
-
-            function askForNewName() {
-                // Prompt for new Name
-                showConfirmDialog(`Do you want to change the Employee Name?`, (changeNameConfirmed) => {
-                    if (!changeNameConfirmed) {
-                        // If user cancels changing name, proceed to update with current name
-                        performUpdate(newId, newName);
-                        return;
-                    }
-
-                    // If user confirms changing name, prompt for new Name value
-                    showConfirmDialog(`Enter new Name for ${newId} (current: ${currentName}):`, (nameInput) => {
-                        if (nameInput === null) { // User clicked cancel on the Name prompt
-                            showMessage("Edit cancelled.", "info", true); // Auto-dismiss
-                            return;
-                        }
-                        newName = nameInput.trim() || currentName; // Use currentName if input is empty
-
-                        // After getting new name, perform the update
-                        performUpdate(newId, newName);
-                    });
+            if (confirmEditModal) {
+                confirmEditModal.classList.remove('hidden');
+                cleanupConfirmEditModal = setupModalAccessibility(confirmEditModal, () => {
+                    confirmEditModal.classList.add('hidden');
+                    if (cleanupConfirmEditModal) cleanupConfirmEditModal();
+                    cleanupConfirmEditModal = null;
                 });
             }
+        }
 
-            async function performUpdate(finalNewId, finalNewName) {
-                if (finalNewId === currentId && finalNewName === currentName) {
-                    showMessage("No changes detected.", "info", true); // Auto-dismiss
+        // Event listener for "Yes" on the confirmation modal
+        if (confirmEditYes) {
+            confirmEditYes.addEventListener('click', () => {
+                if (confirmEditModal) confirmEditModal.classList.add('hidden');
+                if (cleanupConfirmEditModal) {
+                    cleanupConfirmEditModal();
+                    cleanupConfirmEditModal = null;
+                }
+
+                if (editFormModal && editEmployeeID && editEmployeeName) {
+                    editEmployeeID.value = currentEditEmployeeId;
+                    editEmployeeName.value = currentEditEmployeeName;
+                    editFormModal.classList.remove('hidden');
+                    // Clear any previous inline errors in the edit form
+                    hideInlineError('editEmployeeIDError');
+                    hideInlineError('editEmployeeNameError');
+
+                    cleanupEditFormModal = setupModalAccessibility(editFormModal, () => {
+                        editFormModal.classList.add('hidden');
+                        if (cleanupEditFormModal) cleanupEditFormModal();
+                        cleanupEditFormModal = null;
+                    });
+                }
+            });
+        }
+
+        // Event listener for "Cancel" on the confirmation modal
+        if (confirmEditNo) {
+            confirmEditNo.addEventListener('click', () => {
+                if (confirmEditModal) confirmEditModal.classList.add('hidden');
+                if (cleanupConfirmEditModal) {
+                    cleanupConfirmEditModal();
+                    cleanupConfirmEditModal = null;
+                }
+                showToast("Employee edit cancelled.", "info");
+            });
+        }
+
+        // Event listener for "Cancel" on the edit form modal
+        if (cancelEditBtn) {
+            cancelEditBtn.addEventListener('click', () => {
+                if (editFormModal) editFormModal.classList.add('hidden');
+                if (cleanupEditFormModal) {
+                    cleanupEditFormModal();
+                    cleanupEditFormModal = null;
+                }
+                showToast("Employee edit cancelled.", "info");
+            });
+        }
+
+        // Event listener for "Save" on the edit form modal
+        if (saveEditBtn) {
+            saveEditBtn.addEventListener('click', async () => {
+                const newId = editEmployeeID.value.trim().toUpperCase();
+                const newName = editEmployeeName.value.trim();
+
+                // Clear previous errors
+                hideInlineError('editEmployeeIDError');
+                hideInlineError('editEmployeeNameError');
+
+                if (!newId) {
+                    showInlineError('editEmployeeIDError', "Employee ID cannot be empty.");
+                    return;
+                }
+                if (!newName) {
+                    showInlineError('editEmployeeNameError', "Employee Name cannot be empty.");
                     return;
                 }
 
-                if (finalNewId !== currentId && predefinedTeamMembers.some(member => member.id.toUpperCase() === finalNewId)) {
-                    showMessage(`New Employee ID '${finalNewId}' already exists.`, "error");
+                // Check for duplicate ID only if the ID has changed
+                if (newId !== currentEditEmployeeId && predefinedTeamMembers.some(member => member.id.toUpperCase() === newId)) {
+                    showInlineError('editEmployeeIDError', `New Employee ID '${newId}' already exists.`);
+                    return;
+                }
+
+                // If no changes were made
+                if (newId === currentEditEmployeeId && newName === currentEditEmployeeName) {
+                    showToast("No changes detected.", "info");
+                    if (editFormModal) editFormModal.classList.add('hidden');
+                    if (cleanupEditFormModal) {
+                        cleanupEditFormModal();
+                        cleanupEditFormModal = null;
+                    }
                     return;
                 }
 
                 try {
-                    const employeeDocRef = doc(db, `artifacts/${appId}/public/data/teamMembers`, docId);
+                    const employeeDocRef = doc(db, `artifacts/${appId}/public/data/teamMembers`, currentEditEmployeeDocId);
                     await updateDoc(employeeDocRef, {
-                        id: finalNewId,
-                        name: finalNewName
+                        id: newId,
+                        name: newName
                     });
-                    showMessage(`Employee ${currentName} (${currentId}) updated to ${finalNewName} (${finalNewId})!`, "success", true); // Auto-dismiss
+                    showToast(`Employee updated successfully!`, "success");
+                    if (editFormModal) editFormModal.classList.add('hidden');
+                    if (cleanupEditFormModal) {
+                        cleanupEditFormModal();
+                        cleanupEditFormModal = null;
+                    }
                 } catch (e) {
                     console.error("Error updating employee:", e);
-                    showMessage("Failed to update employee. Check console.", "error");
+                    showToast("Failed to update employee. Check console.", "error");
                 }
-            }
+            });
         }
+
+        // Listen for input changes to hide inline errors for edit employee form
+        if (editEmployeeID) editEmployeeID.addEventListener('input', () => hideInlineError('editEmployeeIDError'));
+        if (editEmployeeName) editEmployeeName.addEventListener('input', () => hideInlineError('editEmployeeNameError'));
 
 
         // Handle Delete Employee
@@ -1755,17 +2018,76 @@
                     try {
                         const employeeDocRef = doc(db, `artifacts/${appId}/public/data/teamMembers`, docId);
                         await deleteDoc(employeeDocRef);
-                        showMessage(`${employeeName} deleted successfully!`, "success", true); // Auto-dismiss
+                        showToast(`${employeeName} deleted successfully!`, "success");
                     }
                     catch (e) {
                         console.error("Error deleting employee:", e);
-                        showMessage("Failed to delete employee. Check console.", "error");
+                        showToast("Failed to delete employee. Check console.", "error");
                     }
                 } else {
-                    showMessage("Deletion cancelled.", "info", true); // Auto-dismiss
+                    showToast("Deletion cancelled.", "info");
                 }
             });
         }
+
+        // Handle Update PIN Button Click
+        if (updatePinBtn) {
+            updatePinBtn.addEventListener('click', async () => {
+                const oldPin = oldPinInput.value.trim();
+                const newPin = newPinInput.value.trim();
+                const confirmNewPin = confirmNewPinInput.value.trim();
+
+                // Clear previous errors
+                hideInlineError('oldPinError');
+                hideInlineError('newPinError');
+                hideInlineError('confirmNewPinError');
+
+                if (!oldPin || !newPin || !confirmNewPin) {
+                    if (!oldPin) showInlineError("oldPinError", "Old PIN is required.");
+                    if (!newPin) showInlineError("newPinError", "New PIN is required.");
+                    if (!confirmNewPin) showInlineError("confirmNewPinError", "Confirm New PIN is required.");
+                    showToast("All PIN fields are required.", "error");
+                    return;
+                }
+
+                if (oldPin !== storedAdminPin) {
+                    showInlineError("oldPinError", "Old PIN is incorrect.");
+                    showToast("Old PIN is incorrect.", "error");
+                    return;
+                }
+
+                if (newPin.length < 4) { // Example: enforce minimum length
+                    showInlineError("newPinError", "New PIN must be at least 4 characters long.");
+                    showToast("New PIN must be at least 4 characters long.", "error");
+                    return;
+                }
+
+                if (newPin !== confirmNewPin) {
+                    showInlineError("confirmNewPinError", "New PIN fields do not match.");
+                    showToast("New PIN fields do not match.", "error");
+                    return;
+                }
+
+                try {
+                    const adminConfigRef = doc(db, `artifacts/${appId}/public/data/settings`, 'adminConfig');
+                    await setDoc(adminConfigRef, { adminPin: newPin }, { merge: true });
+                    storedAdminPin = newPin; // Update in-memory PIN
+                    showToast("PIN updated successfully. Next login will use the new PIN.", "success");
+                    // Clear fields
+                    oldPinInput.value = '';
+                    newPinInput.value = '';
+                    confirmNewPinInput.value = '';
+                } catch (e) {
+                    console.error("Error updating PIN:", e);
+                    showToast("Failed to update PIN. Check console.", "error");
+                }
+            });
+        }
+
+        // Listen for input changes to hide inline errors for PIN change form
+        if (oldPinInput) oldPinInput.addEventListener('input', () => hideInlineError('oldPinError'));
+        if (newPinInput) newPinInput.addEventListener('input', () => hideInlineError('newPinError'));
+        if (confirmNewPinInput) confirmNewPinInput.addEventListener('input', () => hideInlineError('confirmNewPinError'));
 
 
         // Update Admin UI (buttons, sections visibility)
@@ -1866,34 +2188,6 @@
             }
         }
 
-        // Dark Mode Toggle Logic
-        function applyDarkMode(enabled) {
-            if (enabled) {
-                document.documentElement.classList.add('dark');
-                document.documentElement.classList.remove('light');
-                document.body.classList.remove('bg-white', 'text-gray-900');
-                document.body.classList.add('bg-gray-950', 'text-gray-100'); // Ensure dark body background
-            } else {
-                document.documentElement.classList.remove('dark');
-                document.documentElement.classList.add('light');
-                document.body.classList.remove('bg-gray-950', 'text-gray-100');
-                document.body.classList.add('bg-white', 'text-gray-900'); // Light body background
-            }
-            // Re-render table and summary to apply correct row background colors
-            renderTable();
-            updateSummary();
-            updateMonthlyOvertimeReport();
-            renderLeaveRequestsTable(); // Re-render leave table for colors
-            updateLeaveBalancesDisplay(); // Re-render leave balances for colors
-        }
-
-        if (darkModeToggle) {
-            darkModeToggle.addEventListener('change', (event) => {
-                applyDarkMode(event.target.checked);
-                saveLocalState(); // Save dark mode preference
-            });
-        }
-
 
         // Function to seed predefined team members into Firestore if the collection is empty
         async function seedTeamMembersIfEmpty() {
@@ -1923,13 +2217,13 @@
                             console.log(`Employee ${member.name} (${member.id}) already exists, skipping seeding.`);
                         }
                     }
-                    showMessage("Predefined team members added to database!", "success", true); // Auto-dismiss
+                    showToast("Predefined team members added to database!", "success"); // Auto-dismiss
                 } else {
                     console.log("Team members collection is not empty. Skipping seeding.");
                 }
             } catch (e) {
                 console.error("Error seeding team members:", e);
-                showMessage("Failed to seed predefined team members. Check console.", "error");
+                showToast("Failed to seed predefined team members. Check console.", "error");
             }
         }
 
@@ -2056,28 +2350,40 @@
                 const startDate = leaveStartDateInput.value;
                 const endDate = leaveEndDateInput.value;
 
-                if (!employeeId || !leaveType || !startDate || !endDate) {
-                    showMessage("Please fill all leave request fields.", "error");
+                // Clear previous errors
+                hideInlineError('leaveEmployeeSelectError');
+                hideInlineError('leaveTypeSelectError');
+                hideInlineError('leaveStartDateError');
+                hideInlineError('leaveEndDateError');
+
+                if (!employeeId) {
+                    showInlineError('leaveEmployeeSelectError', "Please select an employee.");
+                    return;
+                }
+                if (!leaveType) {
+                    showInlineError('leaveTypeSelectError', "Please select a leave type.");
+                    return;
+                }
+                if (!startDate) {
+                    showInlineError('leaveStartDateError', "Start date is required.");
+                    return;
+                }
+                if (!endDate) {
+                    showInlineError('leaveEndDateError', "End date is required.");
                     return;
                 }
 
                 const daysRequested = calculateLeaveDays(startDate, endDate);
                 if (daysRequested <= 0) {
-                    showMessage("End Date must be after or same as Start Date.", "error");
+                    showInlineError('leaveEndDateError', "End Date must be after or same as Start Date.");
                     return;
                 }
 
                 const employeeName = predefinedTeamMembers.find(m => m.id === employeeId)?.name;
                 if (!employeeName) {
-                    showMessage("Selected employee not found.", "error");
+                    showToast("Selected employee not found.", "error");
                     return;
                 }
-
-                // No longer checking for insufficient balance here, as per "no fixed limits"
-                // if (leaveType !== 'Unpaid' && leaveBalances[employeeId] && leaveBalances[employeeId][leaveType] < daysRequested) {
-                //     showMessage(`Insufficient ${leaveType} balance for ${employeeName}. Requested: ${daysRequested}, Available: ${leaveBalances[employeeId][leaveType]}.`, "error");
-                //     return;
-                // }
 
                 try {
                     const leaveCollectionRef = collection(db, `artifacts/${appId}/public/data/leaveRecords`);
@@ -2091,7 +2397,7 @@
                         status: 'Pending', // Default status
                         requestedAt: new Date().toISOString()
                     });
-                    showMessage("Leave request submitted successfully!", "success", true); // Auto-dismiss
+                    showToast("Leave request submitted successfully!", "success"); // Auto-dismiss
                     // Clear form
                     leaveEmployeeSelect.value = '';
                     leaveTypeSelect.value = '';
@@ -2099,10 +2405,17 @@
                     leaveEndDateInput.value = '';
                 } catch (e) {
                     console.error("Error submitting leave request:", e);
-                    showMessage("Failed to submit leave request. Check console.", "error");
+                    showToast("Failed to submit leave request. Check console.", "error");
                 }
             });
         }
+
+        // Listen for input changes to hide inline errors for leave request form
+        if (leaveEmployeeSelect) leaveEmployeeSelect.addEventListener('change', () => hideInlineError('leaveEmployeeSelectError'));
+        if (leaveTypeSelect) leaveTypeSelect.addEventListener('change', () => hideInlineError('leaveTypeSelectError'));
+        if (leaveStartDateInput) leaveStartDateInput.addEventListener('input', () => hideInlineError('leaveStartDateError'));
+        if (leaveEndDateInput) leaveEndDateInput.addEventListener('input', () => hideInlineError('leaveEndDateError'));
+
 
         // Handle Approve Leave
         async function handleApproveLeave(event) {
@@ -2114,30 +2427,21 @@
                         const leaveRecord = leaveRecords.find(rec => rec.id === docId);
 
                         if (leaveRecord && leaveRecord.status === 'Pending') {
-                            // No longer checking for insufficient balance here, as per "no fixed limits"
-                            // const employeeId = leaveRecord.employeeId;
-                            // const leaveType = leaveRecord.leaveType;
-                            // const daysRequested = leaveRecord.daysRequested;
-                            // if (leaveType !== 'Unpaid' && leaveBalances[employeeId] && leaveBalances[employeeId][leaveType] < daysRequested) {
-                            //     showMessage(`Cannot approve: Insufficient ${leaveType} balance for ${leaveRecord.memberName}.`, "error");
-                            //     return;
-                            // }
-
                             await updateDoc(leaveDocRef, {
                                 status: 'Approved',
                                 approvedBy: 'Admin', // Use a generic 'Admin' string for PIN-based auth
                                 approvedAt: new Date().toISOString()
                             });
-                            showMessage("Leave request approved!", "success", true); // Auto-dismiss
+                            showToast("Leave request approved!", "success"); // Auto-dismiss
                         } else {
-                            showMessage("Cannot approve a non-pending leave request.", "error");
+                            showToast("Cannot approve a non-pending leave request.", "error");
                         }
                     } catch (e) {
                         console.error("Error approving leave:", e);
-                        showMessage("Failed to approve leave. Check console.", "error");
+                        showToast("Failed to approve leave. Check console.", "error");
                     }
                 } else {
-                    showMessage("Leave approval cancelled.", "info", true); // Auto-dismiss
+                    showToast("Leave approval cancelled.", "info");
                 }
             });
         }
@@ -2154,13 +2458,13 @@
                             approvedBy: 'Admin', // Use a generic 'Admin' string for PIN-based auth
                             approvedAt: new Date().toISOString()
                         });
-                        showMessage("Leave request rejected!", "success", true); // Auto-dismiss
+                        showToast("Leave request rejected!", "success"); // Auto-dismiss
                     } catch (e) {
                         console.error("Error rejecting leave:", e);
-                        showMessage("Failed to reject leave. Check console.", "error");
+                        showToast("Failed to reject leave. Check console.", "error");
                     }
                 } else {
-                    showMessage("Leave rejection cancelled.", "info", true); // Auto-dismiss
+                    showToast("Leave rejection cancelled.", "info");
                 }
             });
         }
@@ -2173,14 +2477,14 @@
                     try {
                         const leaveDocRef = doc(db, `artifacts/${appId}/public/data/leaveRecords`, docId);
                         await deleteDoc(leaveDocRef);
-                        showMessage("Leave record deleted!", "success", true); // Auto-dismiss
+                        showToast("Leave record deleted!", "success");
                     }
                     catch (e) {
                         console.error("Error deleting leave record:", e);
-                        showMessage("Failed to delete leave record. Check console.", "error");
+                        showToast("Failed to delete leave record. Check console.", "error");
                     }
                 } else {
-                    showMessage("Leave record deletion cancelled.", "info", true); // Auto-dismiss
+                    showToast("Leave record deletion cancelled.", "info");
                 }
             });
         }
@@ -2189,11 +2493,11 @@
         if(exportLeaveCsvBtn) {
             exportLeaveCsvBtn.addEventListener('click', () => {
                 if (!isAdminLoggedIn || !isAdminMode) { 
-                    showMessage("You must be logged in as an Admin and Admin Mode must be enabled to export leave data.", "error");
+                    showToast("You must be logged in as an Admin and Admin Mode must be enabled to export leave data.", "error");
                     return;
                 }
                 if (leaveRecords.length === 0) {
-                    showMessage("No leave data to export.", "info", true);
+                    showToast("No leave data to export.", "info");
                     return;
                 }
 
@@ -2222,7 +2526,7 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                showMessage("Leave data exported to CSV!", "success", true);
+                showToast("Leave data exported to CSV!", "success");
             });
         }
 
@@ -2308,15 +2612,22 @@
         if (leaveEndDateInput) leaveEndDateInput.addEventListener('keydown', preventEnterKeyDefault);
         if (filterStartDateInput) filterStartDateInput.addEventListener('keydown', preventEnterKeyDefault);
         if (filterEndDateInput) filterEndDateInput.addEventListener('keydown', preventEnterKeyDefault);
+        // New PIN change fields
+        if (oldPinInput) oldPinInput.addEventListener('keydown', preventEnterKeyDefault);
+        if (newPinInput) newPinInput.addEventListener('keydown', preventEnterKeyDefault);
+        if (confirmNewPinInput) confirmNewPinInput.addEventListener('keydown', preventEnterKeyDefault);
+        // Edit employee form fields
+        if (editEmployeeID) editEmployeeID.addEventListener('keydown', preventEnterKeyDefault);
+        if (editEmployeeName) editEmployeeName.addEventListener('keydown', preventEnterKeyDefault);
 
 
         // Initialize Firebase and set up Firestore listener
         document.addEventListener('DOMContentLoaded', () => {
-            loadLocalState(); // Load dark mode preference early
+            loadLocalState(); // Load local preferences (including admin state)
 
             if (firebaseConfig.apiKey === "" || firebaseConfig.projectId === "" || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
                 console.error("Firebase Configuration Error: Placeholder API Key or Project ID found, or config is incomplete. Please update firebaseConfig with your actual Firebase project details from the Firebase Console.");
-                showMessage("Firebase Setup Error: Your Firebase API Key or Project ID is incorrect. Please obtain the correct details from your Firebase Console and update 'firebaseConfig' in the code.", "error"); // Updated message
+                showVisualError("Firebase Setup Error: Your Firebase API Key or Project ID is incorrect. Please obtain the correct details from your Firebase Console and update 'firebaseConfig' in the code."); // Use visual error banner
                 return; 
             }
             try {
@@ -2328,18 +2639,14 @@
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         currentUserId = user.uid;
-                        // if(currentUserIdDisplay) currentUserIdDisplay.textContent = currentUserId; // User ID display is now hidden
                         console.log("Firebase authenticated. User ID:", currentUserId);
-                        // isAdminLoggedIn and isAdminMode are now controlled by PIN login
                         
                         // Call seed function after auth is ready and db is available
                         await seedTeamMembersIfEmpty(); 
                         setupFirestoreListeners(); 
                     } else {
                         currentUserId = null;
-                        // isAdminLoggedIn and isAdminMode are already set by loadLocalState() or PIN logic
                         adminStatus.textContent = "Not logged in as Admin.";
-                        // if(currentUserIdDisplay) currentUserIdDisplay.textContent = 'Not authenticated'; // User ID display is now hidden
                         console.log("Firebase: No user signed in. Attempting anonymous sign-in.");
                         try {
                             await signInAnonymously(auth); 
@@ -2347,9 +2654,9 @@
                         } catch (error) {
                             console.error("Firebase Auth Error during anonymous sign-in:", error);
                             if (error.code === 'auth/configuration-not-found') {
-                                showMessage("Firebase Auth Error: Authentication is not enabled for your project or 'Anonymous' sign-in is disabled. Please enable 'Anonymous' sign-in in your Firebase Console (Build -> Authentication -> Get started -> Sign-in method).", "error");
+                                showVisualError("Firebase Auth Error: Authentication is not enabled for your project or 'Anonymous' sign-in is disabled. Please enable 'Anonymous' sign-in in your Firebase Console (Build -> Authentication -> Get started -> Sign-in method).");
                             } else {
-                                showMessage("Failed to authenticate with Firebase. Data won-t be saved or synchronized. Check console for details.", "error");
+                                showVisualError("Failed to authenticate with Firebase. Data won't be saved or synchronized. Check console for details.");
                             }
                         }
                     }
@@ -2358,11 +2665,11 @@
                     updateDashboardMetrics(); // Initial dashboard update after auth state is known
                 }, (error) => {
                     console.error("Error in onAuthStateChanged:", error);
-                    showMessage("Firebase authentication state error. Check console.", "error");
+                    showVisualError("Firebase authentication state error. Check console.");
                 });
             } catch (e) {
                 console.error("Error initializing Firebase:", e);
-                showMessage("Error initializing Firebase. Data persistence will not work. Check console for details.", "error");
+                showVisualError("Error initializing Firebase. Data persistence will not work. Check console for details.");
             }
         });
 
@@ -2376,6 +2683,32 @@
                 console.warn("User ID is not available. Cannot set up listeners.");
                 return;
             }
+
+            // Listener for admin settings (including PIN)
+            console.log(`Setting up Firestore listener for adminConfig: artifacts/${appId}/public/data/settings/adminConfig`);
+            const adminConfigRef = doc(db, `artifacts/${appId}/public/data/settings`, 'adminConfig');
+            onSnapshot(adminConfigRef, async (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const data = docSnapshot.data();
+                    storedAdminPin = data.adminPin || "123456"; // Update stored PIN from Firestore
+                    console.log("Admin PIN loaded from Firestore:", storedAdminPin);
+                } else {
+                    console.log("adminConfig document does not exist. Creating with default PIN.");
+                    // Create the document with a default PIN if it doesn't exist
+                    try {
+                        await setDoc(adminConfigRef, { adminPin: "123456", createdAt: new Date().toISOString() });
+                        storedAdminPin = "123456";
+                        console.log("adminConfig document created with default PIN.");
+                    } catch (e) {
+                        console.error("Error creating adminConfig document:", e);
+                        showToast("Failed to initialize admin settings. Check console.", "error");
+                    }
+                }
+            }, (error) => {
+                console.error("Error listening to adminConfig Firestore:", error);
+                showToast("Error loading admin settings from database. Check console for details.", "error");
+            });
+
 
             console.log(`Setting up Firestore listener for extendedHours collection: artifacts/${appId}/public/data/extendedHours`);
             const hoursQuery = query(collection(db, `artifacts/${appId}/public/data/extendedHours`), orderBy("createdAt", "asc"));
@@ -2416,7 +2749,7 @@
                 updateDashboardMetrics(); // Update dashboard when extended hours data changes
             }, (error) => {
                 console.error("Error listening to extendedHours Firestore:", error);
-                showMessage("Error loading real-time data from database. Check console for details.", "error");
+                showToast("Error loading real-time data from database. Check console for details.", "error");
             });
 
             console.log(`Setting up Firestore listener for teamMembers collection: artifacts/${appId}/public/data/teamMembers`);
@@ -2427,7 +2760,7 @@
                 snapshot.forEach((doc) => {
                     const data = doc.data();
                     fetchedTeamMembers.push({
-                        docId: doc.id, 
+                        docId: doc.id, // Store Firestore document ID
                         id: data.id,   
                         name: data.name, 
                         createdAt: data.createdAt
@@ -2443,7 +2776,7 @@
                 updateDashboardMetrics(); // Update dashboard when team members data changes
             }, (error) => {
                 console.error("Error listening to teamMembers Firestore:", error);
-                showMessage("Error loading team members from database. Check console for details.", "error");
+                showToast("Error loading team members from database. Check console for details.", "error");
             });
 
             console.log(`Setting up Firestore listener for leaveRecords collection: artifacts/${appId}/public/data/leaveRecords`);
@@ -2473,7 +2806,7 @@
                 calculateLeaveBalances();
             }, (error) => {
                 console.error("Error listening to leaveRecords Firestore:", error);
-                showMessage("Error loading leave records from database. Check console for details.", "error");
+                showToast("Error loading leave records from database. Check console for details.", "error");
             });
         }
     </script>
