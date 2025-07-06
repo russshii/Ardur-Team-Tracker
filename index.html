@@ -6,6 +6,9 @@
     <title>Employee Extended Hours Tracker</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF and html2canvas for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         /* Custom styles for Inter font and some utility classes not directly in Tailwind */
         body {
@@ -188,30 +191,30 @@
 </head>
 <body class="p-4 sm:p-6 md:p-8">
     <!-- Message Dialog -->
-    <div id="messageDialogBackdrop" class="message-dialog-backdrop hidden">
+    <div id="messageDialogBackdrop" class="message-dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="messageDialogTitle">
         <div id="messageDialog" class="message-dialog">
             <h3 id="messageDialogTitle">Notification</h3>
             <p id="messageDialogMessage"></p>
             <div class="message-dialog-buttons">
-                <button id="messageDialogCloseBtn" class="bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500">OK</button>
+                <button id="messageDialogCloseBtn" type="button" class="bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500">OK</button>
             </div>
         </div>
     </div>
 
     <!-- Confirmation Dialog -->
-    <div id="confirmDialogBackdrop" class="confirm-dialog-backdrop hidden">
+    <div id="confirmDialogBackdrop" class="confirm-dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle">
         <div id="confirmDialog" class="confirm-dialog">
             <h3 id="confirmDialogTitle">Confirm Action</h3>
             <p id="confirmDialogMessage">Are you sure you want to proceed?</p>
             <div class="confirm-dialog-buttons flex justify-center space-x-4">
-                <button id="confirmYesBtn" class="bg-red-600 text-white hover:bg-red-700 focus:ring-red-500">Yes</button>
-                <button id="confirmNoBtn" class="bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500">No</button>
+                <button id="confirmYesBtn" type="button" class="bg-red-600 text-white hover:bg-red-700 focus:ring-red-500">Yes</button>
+                <button id="confirmNoBtn" type="button" class="bg-gray-600 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">No</button>
             </div>
         </div>
     </div>
 
     <!-- Admin Settings Modal -->
-    <div id="adminSettingsModalBackdrop" class="admin-settings-modal-backdrop hidden">
+    <div id="adminSettingsModalBackdrop" class="admin-settings-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="adminSettingsTitle">
         <div id="adminSettingsModal" class="admin-settings-modal">
             <h3 id="adminSettingsTitle">Admin Settings</h3>
             
@@ -228,7 +231,7 @@
                         <input type="text" id="newEmployeeName" placeholder="e.g., John Doe" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-700 text-gray-100">
                     </div>
                 </div>
-                <button id="addEmployeeBtn" class="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-md shadow-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out">Add Employee</button>
+                <button id="addEmployeeBtn" type="button" class="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-md shadow-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out">Add Employee</button>
             </div>
 
             <!-- Manage Existing Employees Table -->
@@ -250,7 +253,7 @@
                     </table>
                 </div>
             </div>
-            <button id="closeAdminSettingsBtn">Close Settings</button>
+            <button id="closeAdminSettingsBtn" type="button">Close Settings</button>
         </div>
     </div>
 
@@ -263,12 +266,13 @@
         </header>
 
         <!-- User ID Display & Dark Mode Toggle -->
-        <div class="mb-6 p-4 rounded-lg bg-gray-600 text-center text-sm text-gray-300 shadow-inner relative hidden">
+        <!-- Removed 'hidden' class from this div to make it visible -->
+        <div class="mb-6 p-4 rounded-lg bg-gray-600 text-center text-sm text-gray-300 shadow-inner relative">
             User ID: <span id="currentUserIdDisplay" class="font-semibold text-gray-100">Loading...</span>
             <div class="absolute top-1/2 -translate-y-1/2 right-4 flex items-center space-x-2">
                 <span class="text-gray-300">Dark Mode</span>
                 <label class="switch">
-                    <input type="checkbox" id="darkModeToggle" checked> <!-- Checked by default for dark mode -->
+                    <input type="checkbox" id="darkModeToggle" checked aria-label="Toggle dark mode"> <!-- Checked by default for dark mode -->
                     <span class="slider round"></span>
                 </label>
             </div>
@@ -279,27 +283,45 @@
             <h2 class="text-2xl font-bold text-red-300 mb-6">Admin Access</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                 <div>
-                    <label for="adminIdInput" class="block text-sm font-medium text-gray-200 mb-1">Admin Employee ID</label>
-                    <input type="text" id="adminIdInput" placeholder="Enter Admin ID" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 bg-gray-200 text-gray-900">
+                    <label for="adminPinInput" class="block text-sm font-medium text-gray-200 mb-1">Admin PIN</label>
+                    <input type="password" id="adminPinInput" placeholder="Enter PIN" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 bg-gray-200 text-gray-900">
                 </div>
-                <div>
-                    <label for="adminPasswordInput" class="block text-sm font-medium text-gray-200 mb-1">Admin Password</label>
-                    <input type="password" id="adminPasswordInput" placeholder="Enter Password" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 bg-gray-200 text-gray-900">
-                </div>
-                <div class="flex flex-col sm:flex-row gap-4">
-                    <button id="adminLoginBtn" class="flex-1 px-6 py-3 bg-red-700 text-white font-semibold rounded-lg shadow-sm hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300 ease-in-out">Admin Login</button>
-                    <button id="adminLogoutBtn" class="flex-1 px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-300 ease-in-out" disabled>Admin Logout</button>
+                <div class="flex flex-col sm:flex-row gap-4 col-span-2"> <!-- Adjusted column span -->
+                    <button id="adminLoginBtn" type="button" class="flex-1 px-6 py-3 bg-red-700 text-white font-semibold rounded-lg shadow-sm hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300 ease-in-out">Admin Login</button>
+                    <button id="adminLogoutBtn" type="button" class="flex-1 px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-300 ease-in-out" disabled>Admin Logout</button>
                 </div>
             </div>
             <p id="adminStatus" class="mt-4 text-center text-lg font-medium text-red-200"></p>
             <!-- Admin-specific control buttons -->
             <div class="mt-6 flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4">
-                <button id="toggleAdminModeBtn" class="px-6 py-3 bg-yellow-600 text-white font-semibold rounded-lg shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all duration-300 ease-in-out hidden">
+                <button id="toggleAdminModeBtn" type="button" class="px-6 py-3 bg-yellow-600 text-white font-semibold rounded-lg shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all duration-300 ease-in-out hidden">
                     Enable Admin Mode
                 </button>
-                <button id="adminSettingsBtn" class="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-300 ease-in-out hidden">
+                <button id="adminSettingsBtn" type="button" class="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-300 ease-in-out hidden">
                     Admin Settings
                 </button>
+            </div>
+        </section>
+
+        <!-- Dashboard Overview Section -->
+        <section id="dashboardOverviewSection" class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800 hidden">
+            <h2 class="text-2xl font-bold text-emerald-400 mb-6">Dashboard Overview</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Total Employees Card -->
+                <div class="bg-gray-800 p-4 rounded-lg shadow flex flex-col items-center">
+                    <p class="text-xl font-semibold text-emerald-300">Total Employees</p>
+                    <p id="totalEmployeesCount" class="text-2xl text-emerald-100">0</p>
+                </div>
+                <!-- Active Logins Today Card -->
+                <div class="bg-gray-800 p-4 rounded-lg shadow flex flex-col items-center">
+                    <p class="text-xl font-semibold text-emerald-300">Active Logins Today</p>
+                    <p id="activeLoginsCount" class="text-2xl text-emerald-100">0</p>
+                </div>
+                <!-- Total Overtime Hours This Month Card -->
+                <div class="bg-gray-800 p-4 rounded-lg shadow flex flex-col items-center">
+                    <p class="text-xl font-semibold text-emerald-300">Total Overtime This Month</p>
+                    <p id="totalOvertimeMonth" class="text-2xl text-emerald-100">0.00</p>
+                </div>
             </div>
         </section>
 
@@ -315,8 +337,8 @@
                     </select>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <button id="loginBtn" class="flex-1 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 ease-in-out">Login</button>
-                    <button id="logoutBtn" class="flex-1 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300 ease-in-out" disabled>Logout</button>
+                    <button id="loginBtn" type="button" class="flex-1 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 ease-in-out">Login</button>
+                    <button id="logoutBtn" type="button" class="flex-1 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300 ease-in-out" disabled>Logout</button>
                 </div>
             </div>
             <p id="employeeLoginStatus" class="mt-4 text-center text-lg font-medium text-gray-300"></p>
@@ -356,13 +378,13 @@
                         <input type="date" id="leaveEndDate" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-200 text-gray-900">
                     </div>
                 </div>
-                <button id="requestLeaveBtn" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">Request Leave</button>
+                <button id="requestLeaveBtn" type="button" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">Request Leave</button>
             </div>
 
             <!-- Leave Requests Table -->
             <div class="mb-4">
                 <h4 class="text-xl font-semibold mb-4 text-gray-200">Pending & Approved Leave Requests</h4>
-                <div class="overflow-x-auto rounded-lg shadow-md table-container max-h-60 border border-gray-700">
+                <div id="leaveTableContainer" class="overflow-x-auto rounded-lg shadow-md table-container max-h-60 border border-gray-700">
                     <table class="min-w-full divide-y divide-gray-700">
                         <thead class="bg-gray-700 sticky top-0">
                             <tr>
@@ -381,8 +403,9 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-6 flex justify-end">
-                    <button id="exportLeaveCsvBtn" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 ease-in-out hidden">Export Leave Data to CSV</button>
+                <div class="mt-6 flex justify-end space-x-4">
+                    <button id="exportLeaveCsvBtn" type="button" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 ease-in-out hidden">Export Leave Data to CSV</button>
+                    <button id="exportLeavePdfBtn" type="button" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 ease-in-out hidden">Export Leave Data to PDF</button>
                 </div>
             </div>
 
@@ -411,20 +434,20 @@
                 </div>
             </div>
             <div class="mt-6 flex justify-end space-x-4">
-                <button id="applyFilterBtn" class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 ease-in-out">Apply Filter</button>
-                <button id="clearFilterBtn" class="px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-300 ease-in-out">Clear Filter</button>
+                <button id="applyFilterBtn" type="button" class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 ease-in-out">Apply Filter</button>
+                <button id="clearFilterBtn" type="button" class="px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-300 ease-in-out">Clear Filter</button>
             </div>
         </section>
 
         <!-- Table to Display Entries -->
         <section class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800">
             <h2 class="text-2xl font-bold text-gray-100 mb-6">Extended Hours Log</h2>
-            <div class="overflow-x-auto rounded-lg shadow-md table-container max-h-96 border border-gray-700">
+            <div id="extendedHoursTableContainer" class="overflow-x-auto rounded-lg shadow-md table-container max-h-96 border border-gray-700">
                 <table class="min-w-full divide-y divide-gray-700">
                     <thead class="bg-gray-700 sticky top-0">
                         <tr>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider delete-column-header hidden">
-                                <input type="checkbox" id="selectAllCheckboxes" class="form-checkbox h-4 w-4 text-emerald-500 transition duration-150 ease-in-out rounded">
+                                <input type="checkbox" id="selectAllCheckboxes" class="form-checkbox h-4 w-4 text-emerald-500 transition duration-150 ease-in-out rounded" aria-label="Select all entries">
                             </th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Employee Name</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Employee ID</th>
@@ -440,9 +463,10 @@
                     </tbody>
                 </table>
             </div>
-            <div class="mt-6 flex justify-end">
-                <button id="deleteSelectedBtn" class="px-6 py-3 bg-red-700 text-white font-semibold rounded-lg shadow-sm hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600 transition-all duration-300 ease-in-out hidden">Delete Selected Entries</button>
-                <button id="exportCsvBtn" class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 ease-in-out ml-4 hidden">Export to CSV</button>
+            <div class="mt-6 flex justify-end space-x-4">
+                <button id="deleteSelectedBtn" type="button" class="px-6 py-3 bg-red-700 text-white font-semibold rounded-lg shadow-sm hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600 transition-all duration-300 ease-in-out hidden">Delete Selected Entries</button>
+                <button id="exportCsvBtn" type="button" class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 ease-in-out hidden">Export to CSV</button>
+                <button id="exportPdfBtn" type="button" class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 ease-in-out hidden">Export to PDF</button>
             </div>
         </section>
 
@@ -471,7 +495,8 @@
     <script type="module">
         // Firebase Imports (required for cloud database)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+        // Only import necessary Firebase Auth functions for anonymous sign-in
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDocs, where } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
         // Firebase Initialization Variables
@@ -481,9 +506,9 @@
         let currentUserId = null; // Store Firebase Authentication User ID
 
         // Your Firebase Project Configuration
-        // !!! IMPORTANT: These values have been replaced with your actual Firebase project details.
-        // If you need to change them again, please get the latest config from your Firebase Console.
         const firebaseConfig = {
+          // IMPORTANT: Replace these with your actual Firebase project details from the Firebase Console
+          // Go to Project settings -> Your apps -> Web app -> Firebase SDK snippet -> Config
           apiKey: "AIzaSyBSHQNO1us-HL1bnFUzefkSnhbwdESVhME",
           authDomain: "admin-97140.firebaseapp.com",
           projectId: "admin-97140",
@@ -509,11 +534,8 @@
             { id: "AT0000", name: "Vishal" } // Added Vishal with a placeholder ID, assuming it was missing
         ]; 
 
-        // The Employee ID that will have admin privileges
-        const ADMIN_EMPLOYEE_ID = "AT0085"; 
-        // !!! IMPORTANT: FOR DEMONSTRATION ONLY - DO NOT USE HARDCODED PASSWORDS IN PRODUCTION !!!
-        // For a real application, implement secure authentication (e.g., Firebase Auth with email/password).
-        const ADMIN_PASSWORD = "RUSHI"; // <--- SET YOUR ADMIN PASSWORD HERE
+        // The Admin PIN for authentication
+        const ADMIN_PIN = "123456"; 
         // ---------------------------------------------
 
         // Array to store extended hours entries (populated by Firestore)
@@ -550,8 +572,7 @@
 
         // DOM Elements - Admin Access
         const adminAccessSection = document.getElementById('adminAccessSection');
-        const adminIdInput = document.getElementById('adminIdInput');
-        const adminPasswordInput = document.getElementById('adminPasswordInput');
+        const adminPinInput = document.getElementById('adminPinInput'); // Changed from adminEmailInput
         const adminLoginBtn = document.getElementById('adminLoginBtn');
         const adminLogoutBtn = document.getElementById('adminLogoutBtn');
         const adminStatus = document.getElementById('adminStatus');
@@ -560,6 +581,7 @@
         const entriesTableBody = document.getElementById('entriesTableBody');
         const summarySection = document.getElementById('summarySection');
         const exportCsvBtn = document.getElementById('exportCsvBtn');
+        const exportPdfBtn = document.getElementById('exportPdfBtn'); // New PDF export button for extended hours
         const filterStartDateInput = document.getElementById('filterStartDate');
         const filterEndDateInput = document.getElementById('filterEndDate');
         const applyFilterBtn = document.getElementById('applyFilterBtn'); 
@@ -592,12 +614,12 @@
         const confirmDialogTitle = document.getElementById('confirmDialogTitle');
         const confirmDialogMessage = document.getElementById('confirmDialogMessage');
         const confirmYesBtn = document.getElementById('confirmYesBtn');
-        const confirmNoBtn = document.getElementById('confirmNo');
+        const confirmNoBtn = document.getElementById('confirmNoBtn');
 
         // Message Dialog Elements
         const messageDialogBackdrop = document.getElementById('messageDialogBackdrop');
         const messageDialogElement = document.getElementById('messageDialog'); // Reference to the dialog itself
-        const messageDialogTitle = document.getElementById('messageDialogTitle');
+        const messageDialogTitle = document.getElementById('messageDialogTitle'); 
         const messageDialogMessage = document.getElementById('messageDialogMessage');
         const messageDialogCloseBtn = document.getElementById('messageDialogCloseBtn');
 
@@ -614,6 +636,72 @@
         const leaveBalanceSummary = document.getElementById('leaveBalanceSummary');
         const noLeaveBalanceMessage = document.getElementById('noLeaveBalanceMessage');
         const exportLeaveCsvBtn = document.getElementById('exportLeaveCsvBtn');
+        const exportLeavePdfBtn = document.getElementById('exportLeavePdfBtn'); // New PDF export button for leave records
+
+        // Dashboard Overview DOM Elements
+        const dashboardOverviewSection = document.getElementById('dashboardOverviewSection');
+        const totalEmployeesCount = document.getElementById('totalEmployeesCount');
+        const activeLoginsCount = document.getElementById('activeLoginsCount');
+        const totalOvertimeMonth = document.getElementById('totalOvertimeMonth');
+
+        // Global cleanup functions for modals
+        let cleanupMessageModal = null;
+        let cleanupConfirmModal = null;
+        let cleanupAdminSettingsModal = null;
+
+        // Helper function to get all focusable elements within a container
+        function getFocusableElements(container) {
+            return Array.from(container.querySelectorAll(
+                'button:not([disabled]), [href]:not([disabled]), input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])'
+            )).filter(el => el.offsetWidth > 0 || el.offsetHeight > 0); // Filter out hidden elements
+        }
+
+        // Generic function to set up modal accessibility (focus trapping and escape key)
+        function setupModalAccessibility(modalBackdropElement, closeCallback) {
+            const previouslyFocusedElement = document.activeElement; // Store the element that had focus before opening
+
+            const modalContent = modalBackdropElement.querySelector('.message-dialog, .confirm-dialog, .admin-settings-modal');
+            if (!modalContent) return null;
+
+            const focusableElements = getFocusableElements(modalContent);
+            if (focusableElements.length === 0) return null;
+
+            const firstFocusableElement = focusableElements[0];
+            const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+            // Set initial focus
+            firstFocusableElement.focus();
+
+            // Trap focus and handle Escape key
+            const trapFocusHandler = (e) => {
+                if (e.key === 'Tab') {
+                    if (e.shiftKey) { // Shift + Tab
+                        if (document.activeElement === firstFocusableElement) {
+                            lastFocusableElement.focus();
+                            e.preventDefault();
+                        }
+                    } else { // Tab
+                        if (document.activeElement === lastFocusableElement) {
+                            firstFocusableElement.focus();
+                            e.preventDefault();
+                        }
+                    }
+                } else if (e.key === 'Escape') {
+                    closeCallback();
+                    e.preventDefault(); // Prevent default Escape behavior (e.g., browser back)
+                }
+            };
+
+            modalBackdropElement.addEventListener('keydown', trapFocusHandler);
+
+            // Return a cleanup function
+            return () => {
+                modalBackdropElement.removeEventListener('keydown', trapFocusHandler);
+                if (previouslyFocusedElement && document.body.contains(previouslyFocusedElement)) {
+                    previouslyFocusedElement.focus(); // Return focus to original element
+                }
+            };
+        }
 
 
         // Function to display messages in a custom centered dialog
@@ -635,10 +723,15 @@
             }
             messageDialogBackdrop.classList.remove('hidden');
 
+            // Setup accessibility for the message dialog
+            cleanupMessageModal = setupModalAccessibility(messageDialogBackdrop, hideMessageDialog);
+
             // Hide the OK button for auto-dismissing messages
             if (autoDismiss) {
                 messageDialogCloseBtn.classList.add('hidden');
-                setTimeout(hideMessageDialog, duration);
+                setTimeout(() => {
+                    hideMessageDialog();
+                }, duration);
             } else {
                 messageDialogCloseBtn.classList.remove('hidden');
             }
@@ -648,6 +741,10 @@
         // Function to hide custom message dialog
         function hideMessageDialog() {
             messageDialogBackdrop.classList.add('hidden');
+            if (cleanupMessageModal) {
+                cleanupMessageModal();
+                cleanupMessageModal = null;
+            }
         }
 
         // Event listener for message dialog close button
@@ -662,12 +759,19 @@
             confirmDialogMessage.textContent = message;
             confirmDialogBackdrop.classList.remove('hidden'); 
             currentConfirmCallback = onConfirmCallback;
+
+            // Setup accessibility for the confirmation dialog
+            cleanupConfirmModal = setupModalAccessibility(confirmDialogBackdrop, hideConfirmDialog);
         }
 
         // Function to hide custom confirmation dialog
         function hideConfirmDialog() {
             confirmDialogBackdrop.classList.add('hidden');
             currentConfirmCallback = null;
+            if (cleanupConfirmModal) {
+                cleanupConfirmModal();
+                cleanupConfirmModal = null;
+            }
         }
 
         // Event listeners for confirmation dialog buttons
@@ -796,7 +900,7 @@
                 row.className = index % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800'; /* Adjusted for new section background */
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100 ${isAdminMode ? '' : 'hidden'}">
-                        <input type="checkbox" data-id="${entry.id}" class="entry-checkbox form-checkbox h-4 w-4 text-emerald-500 transition duration-150 ease-in-out rounded">
+                        <input type="checkbox" data-id="${entry.id}" class="entry-checkbox form-checkbox h-4 w-4 text-emerald-500 transition duration-150 ease-in-out rounded" aria-label="Select entry for ${entry.memberName} on ${new Date(entry.date).toLocaleDateString('en-GB')}">
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">${entry.memberName}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${entry.employeeId}</td>
@@ -1156,6 +1260,217 @@
             });
         }
 
+        // Function to export table data to PDF (Extended Hours)
+        if(exportPdfBtn) {
+            exportPdfBtn.addEventListener('click', async () => {
+                if (!isAdminLoggedIn || !isAdminMode) { 
+                    showMessage("You must be logged in as an Admin and Admin Mode must be enabled to export data.", "error");
+                    return;
+                }
+                const tableContainer = document.getElementById('extendedHoursTableContainer');
+                if (!tableContainer || tableContainer.querySelector('tbody').children.length === 0 || tableContainer.querySelector('tbody').children[0].textContent.includes('No entries to display')) {
+                    showMessage("No extended hours data to export to PDF.", "info", true);
+                    return;
+                }
+
+                showMessage("Generating PDF...", "info", true, 5000); // Show message for longer duration
+
+                // Create a temporary clone of the table for PDF generation
+                const originalTable = tableContainer.querySelector('table');
+                const clonedTable = originalTable.cloneNode(true);
+                
+                // Apply inline styles to the cloned table for clean PDF rendering
+                clonedTable.style.backgroundColor = '#ffffff'; // White background for the table
+                clonedTable.style.color = '#000000'; // Black text color
+                clonedTable.style.width = '100%'; // Ensure table takes full width
+                clonedTable.style.borderCollapse = 'collapse'; // Collapse borders
+
+                // Apply styles to all cells and headers
+                clonedTable.querySelectorAll('th, td').forEach(cell => {
+                    cell.style.border = '1px solid #cccccc'; // Light gray border
+                    cell.style.padding = '8px';
+                    cell.style.textAlign = 'left';
+                    cell.style.backgroundColor = '#ffffff'; // Ensure white background for cells
+                    cell.style.color = '#000000'; // Ensure black text color
+                });
+                clonedTable.querySelectorAll('thead th').forEach(header => {
+                    header.style.backgroundColor = '#f2f2f2'; // Light gray header background
+                    header.style.fontWeight = 'bold';
+                });
+
+                // Remove the checkbox column from the cloned table if it exists
+                clonedTable.querySelectorAll('.delete-column-header, .entry-checkbox').forEach(el => {
+                    if (el.tagName === 'TH') {
+                        el.remove();
+                    } else if (el.tagName === 'INPUT' && el.type === 'checkbox') {
+                        el.closest('td').remove();
+                    }
+                });
+
+
+                // Create a temporary div to hold the cloned table outside the viewport
+                const tempDiv = document.createElement('div');
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.left = '-9999px';
+                tempDiv.style.top = '-9999px';
+                tempDiv.appendChild(clonedTable);
+                document.body.appendChild(tempDiv);
+
+                try {
+                    const canvas = await html2canvas(clonedTable, {
+                        scale: 2, // Increase scale for better resolution
+                        useCORS: true, // If you have external images, enable CORS
+                        backgroundColor: '#ffffff' // Ensure white background for canvas
+                    });
+
+                    const imgData = canvas.toDataURL('image/png');
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' for portrait, 'mm' for millimeters, 'a4' size
+
+                    const imgWidth = 190; // A4 width minus margins (210mm - 10mm left - 10mm right)
+                    const pageHeight = pdf.internal.pageSize.height;
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    let heightLeft = imgHeight;
+                    let position = 10; // Initial Y position for content
+
+                    // Header
+                    pdf.setFontSize(18);
+                    pdf.text("Employee Extended Hours Report", 105, 20, null, null, "center"); // Centered header
+                    pdf.setFontSize(10);
+
+                    // Add image to PDF, handling multiple pages if necessary
+                    pdf.addImage(imgData, 'PNG', 10, position + 20, imgWidth, imgHeight); // +20 to account for header
+                    heightLeft -= pageHeight - (position + 20);
+
+                    while (heightLeft > 0) {
+                        position = heightLeft - imgHeight;
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+
+                    // Footer
+                    const footerText = `Export Date: ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString('en-GB')}`;
+                    pdf.setFontSize(8);
+                    pdf.text(footerText, 10, pageHeight - 10);
+
+                    pdf.save('extended_hours_report.pdf');
+                    showMessage("Extended Hours Report exported to PDF!", "success", true);
+                } catch (e) {
+                    console.error("Error generating PDF:", e);
+                    showMessage("Failed to generate PDF. Check console for details.", "error");
+                } finally {
+                    // Clean up temporary div
+                    if (tempDiv.parentNode) {
+                        tempDiv.parentNode.removeChild(tempDiv);
+                    }
+                }
+            });
+        }
+
+        // Function to export table data to PDF (Leave Records)
+        if(exportLeavePdfBtn) {
+            exportLeavePdfBtn.addEventListener('click', async () => {
+                if (!isAdminLoggedIn || !isAdminMode) { 
+                    showMessage("You must be logged in as an Admin and Admin Mode must be enabled to export leave data.", "error");
+                    return;
+                }
+                const leaveTableContainer = document.getElementById('leaveTableContainer');
+                if (!leaveTableContainer || leaveTableContainer.querySelector('tbody').children.length === 0 || leaveTableContainer.querySelector('tbody').children[0].textContent.includes('No leave requests')) {
+                    showMessage("No leave records data to export to PDF.", "info", true);
+                    return;
+                }
+
+                showMessage("Generating PDF...", "info", true, 5000); // Show message for longer duration
+
+                // Create a temporary clone of the table for PDF generation
+                const originalTable = leaveTableContainer.querySelector('table');
+                const clonedTable = originalTable.cloneNode(true);
+                
+                // Apply inline styles to the cloned table for clean PDF rendering
+                clonedTable.style.backgroundColor = '#ffffff'; // White background for the table
+                clonedTable.style.color = '#000000'; // Black text color
+                clonedTable.style.width = '100%'; // Ensure table takes full width
+                clonedTable.style.borderCollapse = 'collapse'; // Collapse borders
+
+                // Apply styles to all cells and headers
+                clonedTable.querySelectorAll('th, td').forEach(cell => {
+                    cell.style.border = '1px solid #cccccc'; // Light gray border
+                    cell.style.padding = '8px';
+                    cell.style.textAlign = 'left';
+                    cell.style.backgroundColor = '#ffffff'; // Ensure white background for cells
+                    cell.style.color = '#000000'; // Ensure black text color
+                });
+                clonedTable.querySelectorAll('thead th').forEach(header => {
+                    header.style.backgroundColor = '#f2f2f2'; // Light gray header background
+                    header.style.fontWeight = 'bold';
+                });
+
+                // Remove the actions column from the cloned table if it exists
+                clonedTable.querySelectorAll('.admin-action-column').forEach(el => el.remove());
+
+
+                // Create a temporary div to hold the cloned table outside the viewport
+                const tempDiv = document.createElement('div');
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.left = '-9999px';
+                tempDiv.style.top = '-9999px';
+                tempDiv.appendChild(clonedTable);
+                document.body.appendChild(tempDiv);
+
+                try {
+                    const canvas = await html2canvas(clonedTable, {
+                        scale: 2, // Increase scale for better resolution
+                        useCORS: true, // If you have external images, enable CORS
+                        backgroundColor: '#ffffff' // Ensure white background for canvas
+                    });
+
+                    const imgData = canvas.toDataURL('image/png');
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' for portrait, 'mm' for millimeters, 'a4' size
+
+                    const imgWidth = 190; // A4 width minus margins (210mm - 10mm left - 10mm right)
+                    const pageHeight = pdf.internal.pageSize.height;
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    let heightLeft = imgHeight;
+                    let position = 10; // Initial Y position for content
+
+                    // Header
+                    pdf.setFontSize(18);
+                    pdf.text("Employee Leave Records Report", 105, 20, null, null, "center"); // Centered header
+                    pdf.setFontSize(10);
+
+                    // Add image to PDF, handling multiple pages if necessary
+                    pdf.addImage(imgData, 'PNG', 10, position + 20, imgWidth, imgHeight); // +20 to account for header
+                    heightLeft -= pageHeight - (position + 20);
+
+                    while (heightLeft > 0) {
+                        position = heightLeft - imgHeight;
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+
+                    // Footer
+                    const footerText = `Export Date: ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString('en-GB')}`;
+                    pdf.setFontSize(8);
+                    pdf.text(footerText, 10, pageHeight - 10);
+
+                    pdf.save('employee_leave_report.pdf');
+                    showMessage("Leave Records Report exported to PDF!", "success", true);
+                } catch (e) {
+                    console.error("Error generating PDF:", e);
+                    showMessage("Failed to generate PDF. Check console for details.", "error");
+                } finally {
+                    // Clean up temporary div
+                    if (tempDiv.parentNode) {
+                        tempDiv.parentNode.removeChild(tempDiv);
+                    }
+                }
+            });
+        }
+
+
         // Function to filter entries by date range
         function filterEntriesByDate(startDate, endDate) {
             return extendedHoursEntries.filter(entry => {
@@ -1202,39 +1517,40 @@
 
         // Admin Login Button Click Handler
         if(adminLoginBtn) {
-            adminLoginBtn.addEventListener('click', () => {
-                const enteredAdminId = adminIdInput.value.trim().toUpperCase();
-                const enteredAdminPassword = adminPasswordInput.value.trim();
+            adminLoginBtn.addEventListener('click', async () => {
+                const enteredPin = adminPinInput.value.trim();
 
-                if (enteredAdminId === ADMIN_EMPLOYEE_ID && enteredAdminPassword === ADMIN_PASSWORD) {
+                if (enteredPin === ADMIN_PIN) {
                     isAdminLoggedIn = true;
                     isAdminMode = true; 
-                    adminStatus.textContent = `Admin (${ADMIN_EMPLOYEE_ID}) logged in. Admin Mode Enabled.`;
-                    showMessage("Admin login successful! Admin Mode activated.", "success", true); // Auto-dismiss
+                    adminStatus.textContent = `Admin logged in successfully. Admin Mode Enabled.`;
+                    showMessage("Admin login successful! Admin Mode activated.", "success", true);
                 } else {
                     isAdminLoggedIn = false;
                     isAdminMode = false;
-                    adminStatus.textContent = "Invalid Admin ID or Password.";
-                    showMessage("Invalid Admin ID or Password.", "error");
+                    adminStatus.textContent = "Invalid PIN.";
+                    showMessage("Invalid PIN.", "error");
                 }
                 saveLocalState();
                 updateAdminUI(); 
                 renderTable(); 
+                updateDashboardMetrics(); // Update dashboard on admin login
             });
         }
 
         // Admin Logout Button Click Handler
         if(adminLogoutBtn) {
-            adminLogoutBtn.addEventListener('click', () => {
+            adminLogoutBtn.addEventListener('click', async () => {
+                // No Firebase signOut needed for PIN-based auth
                 isAdminLoggedIn = false;
                 isAdminMode = false; 
-                if(adminIdInput) adminIdInput.value = '';
-                if(adminPasswordInput) adminPasswordInput.value = '';
+                if(adminPinInput) adminPinInput.value = '';
                 adminStatus.textContent = "Admin logged out.";
                 showMessage("Admin logged out.", "info", true); // Auto-dismiss
                 saveLocalState();
                 updateAdminUI(); 
                 renderTable(); 
+                updateDashboardMetrics(); // Update dashboard on admin logout
             });
         }
 
@@ -1247,6 +1563,7 @@
                     updateAdminUI();
                     renderTable(); 
                     showMessage(`Admin Mode: ${isAdminMode ? 'Enabled' : 'Disabled'}`, "info", true); // Auto-dismiss
+                    updateDashboardMetrics(); // Update dashboard on admin mode toggle
                 } else {
                     showMessage("You must be logged in as an Admin to toggle Admin Mode.", "error");
                 }
@@ -1259,6 +1576,12 @@
                 if (isAdminLoggedIn && isAdminMode) {
                     renderManageEmployeesTable(); 
                     if(adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.remove('hidden');
+                    cleanupAdminSettingsModal = setupModalAccessibility(adminSettingsModalBackdrop, () => {
+                        // Custom close logic for admin settings modal
+                        if(adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.add('hidden');
+                        if (cleanupAdminSettingsModal) cleanupAdminSettingsModal();
+                        cleanupAdminSettingsModal = null;
+                    });
                 } else {
                     showMessage("You must be logged in as an Admin and Admin Mode must be enabled to access settings.", "error");
                 }
@@ -1269,6 +1592,10 @@
         if(closeAdminSettingsBtn) {
             closeAdminSettingsBtn.addEventListener('click', () => {
                 if(adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.add('hidden');
+                if (cleanupAdminSettingsModal) {
+                    cleanupAdminSettingsModal();
+                    cleanupAdminSettingsModal = null;
+                }
             });
         }
 
@@ -1291,8 +1618,8 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">${member.id}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${member.name}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button data-id="${member.docId}" data-employee-id="${member.id}" data-employee-name="${member.name}" class="edit-employee-btn text-cyan-400 hover:text-cyan-300 mr-2">Edit</button>
-                        <button data-id="${member.docId}" class="delete-employee-btn text-red-500 hover:text-red-400">Delete</button>
+                        <button data-id="${member.docId}" data-employee-id="${member.id}" data-employee-name="${member.name}" class="edit-employee-btn text-cyan-400 hover:text-cyan-300 mr-2" aria-label="Edit employee ${member.name}">Edit</button>
+                        <button data-id="${member.docId}" class="delete-employee-btn text-red-500 hover:text-red-400" aria-label="Delete employee ${member.name}">Delete</button>
                     </td>
                 `;
                 if(manageEmployeesTableBody) manageEmployeesTableBody.appendChild(row);
@@ -1445,13 +1772,11 @@
         function updateAdminUI() {
             // Admin Access Section visibility
             if (isAdminLoggedIn) {
-                if(adminIdInput) adminIdInput.disabled = true;
-                if(adminPasswordInput) adminPasswordInput.disabled = true;
+                if(adminPinInput) adminPinInput.disabled = true;
                 if(adminLoginBtn) adminLoginBtn.disabled = true;
                 if(adminLogoutBtn) adminLogoutBtn.disabled = false;
             } else {
-                if(adminIdInput) adminIdInput.disabled = false;
-                if(adminPasswordInput) adminPasswordInput.disabled = false;
+                if(adminPinInput) adminPinInput.disabled = false;
                 if(adminLoginBtn) adminLoginBtn.disabled = false;
                 if(adminLogoutBtn) adminLogoutBtn.disabled = true;
             }
@@ -1471,6 +1796,9 @@
                 if (exportCsvBtn) {
                    exportCsvBtn.classList.toggle('hidden', !isAdminMode);
                 }
+                if (exportPdfBtn) { // Control visibility of new PDF button
+                    exportPdfBtn.classList.toggle('hidden', !isAdminMode);
+                }
                 if (deleteSelectedBtn) {
                     deleteSelectedBtn.classList.toggle('hidden', !isAdminMode || selectedEntryIds.size === 0);
                 }
@@ -1480,10 +1808,15 @@
                 }
                 if(filterEntriesSection) filterEntriesSection.classList.toggle('hidden', !isAdminMode);
                 if(exportLeaveCsvBtn) exportLeaveCsvBtn.classList.toggle('hidden', !isAdminMode);
+                if(exportLeavePdfBtn) exportLeavePdfBtn.classList.toggle('hidden', !isAdminMode); // Control visibility of new Leave PDF button
+
+                // Dashboard section visibility
+                if(dashboardOverviewSection) dashboardOverviewSection.classList.toggle('hidden', !isAdminMode);
 
 
                 // Admin actions for leave requests
                 document.querySelectorAll('.admin-action-column').forEach(el => el.classList.remove('hidden'));
+                // The leave-admin-actions class is not currently used in the HTML, but keeping this for future proofing
                 document.querySelectorAll('.leave-admin-actions').forEach(el => el.classList.remove('hidden'));
 
                 // Enable/disable leave date inputs based on admin mode
@@ -1499,6 +1832,9 @@
                 if (exportCsvBtn) {
                    exportCsvBtn.classList.add('hidden');
                 }
+                if (exportPdfBtn) { // Hide PDF button
+                    exportPdfBtn.classList.add('hidden');
+                }
                 if (deleteSelectedBtn) {
                     deleteSelectedBtn.classList.add('hidden');
                 }
@@ -1509,10 +1845,15 @@
                 }
                 if(filterEntriesSection) filterEntriesSection.classList.add('hidden');
                 if(exportLeaveCsvBtn) exportLeaveCsvBtn.classList.add('hidden');
+                if(exportLeavePdfBtn) exportLeavePdfBtn.classList.add('hidden'); // Hide Leave PDF button
+
+                // Dashboard section visibility
+                if(dashboardOverviewSection) dashboardOverviewSection.classList.add('hidden');
 
 
                 // Hide admin actions for leave requests
                 document.querySelectorAll('.admin-action-column').forEach(el => el.classList.add('hidden'));
+                // The leave-admin-actions class is not currently used in the HTML, but keeping this for future proofing
                 document.querySelectorAll('.leave-admin-actions').forEach(el => el.classList.add('hidden'));
 
                 // Disable past dates for employees in leave form
@@ -1609,6 +1950,17 @@
             if (!leaveRequestsTableBody) return;
             leaveRequestsTableBody.innerHTML = '';
 
+            // Get the header for the actions column
+            const adminActionColumnHeader = document.querySelector('.admin-action-column');
+            if (adminActionColumnHeader) {
+                if (isAdminMode) {
+                    adminActionColumnHeader.classList.remove('hidden');
+                } else {
+                    adminActionColumnHeader.classList.add('hidden');
+                }
+            }
+
+
             if (leaveRecords.length === 0) {
                 const noDataRow = document.createElement('tr');
                 noDataRow.innerHTML = `<td colspan="7" class="px-6 py-4 text-center text-sm text-gray-400">No leave requests.</td>`;
@@ -1638,12 +1990,11 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${statusColorClass}">${record.status}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium admin-action-column ${isAdminMode ? '' : 'hidden'}">
                         ${record.status === 'Pending' ? `
-                            <button data-id="${record.id}" class="approve-leave-btn bg-green-600 text-white px-3 py-1 rounded-md shadow-sm hover:bg-green-700 mr-2">Approve</button>
-                            <button data-id="${record.id}" class="reject-leave-btn bg-red-600 text-white px-3 py-1 rounded-md shadow-sm hover:bg-red-700">Reject</button>
-                        ` : ''}
-                        ${record.status !== 'Pending' && isAdminMode ? `
-                            <button data-id="${record.id}" class="delete-leave-btn bg-gray-600 text-white px-3 py-1 rounded-md shadow-sm hover:bg-gray-700">Delete</button>
-                        ` : ''}
+                            <button data-id="${record.id}" type="button" class="approve-leave-btn px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 mr-2" aria-label="Approve leave request for ${record.memberName}">Approve</button>
+                            <button data-id="${record.id}" type="button" class="reject-leave-btn px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700" aria-label="Reject leave request for ${record.memberName}">Reject</button>
+                        ` : `
+                            <button data-id="${record.id}" type="button" class="delete-leave-btn px-3 py-1 bg-gray-600 text-white rounded-md hover:bg-gray-700" aria-label="Delete leave record for ${record.memberName}">Delete</button>
+                        `}
                     </td>
                 `;
                 leaveRequestsTableBody.appendChild(row);
@@ -1666,22 +2017,10 @@
             if (!leaveBalanceSummary) return;
             leaveBalanceSummary.innerHTML = '';
 
-            // Recalculate balances based on *all* leave records
-            const currentBalances = {};
-            predefinedTeamMembers.forEach(member => {
-                currentBalances[member.id] = { ...INITIAL_LEAVE_BALANCE }; // Start with initial
-            });
+            // Check if there's any leave data to display
+            const hasLeaveData = Object.values(leaveBalances).some(balance => balance.totalLeaveTaken > 0);
 
-            leaveRecords.forEach(record => {
-                if (record.status === 'Approved' && record.leaveType !== 'Unpaid') {
-                    if (currentBalances[record.employeeId] && currentBalances[record.employeeId][record.leaveType] !== undefined) {
-                        currentBalances[record.employeeId][record.leaveType] -= record.daysRequested;
-                    }
-                }
-            });
-            leaveBalances = currentBalances; // Update the global leaveBalances
-
-            if (Object.keys(leaveBalances).length === 0) {
+            if (Object.keys(leaveBalances).length === 0 || !hasLeaveData) {
                 noLeaveBalanceMessage.classList.remove('hidden');
                 leaveBalanceSummary.appendChild(noLeaveBalanceMessage);
                 return;
@@ -1689,21 +2028,23 @@
                 noLeaveBalanceMessage.classList.add('hidden');
             }
 
+            // Display total leave taken for each employee from the global leaveBalances
             for (const employeeId in leaveBalances) {
                 const employeeName = predefinedTeamMembers.find(m => m.id === employeeId)?.name || employeeId;
-                const balance = leaveBalances[employeeId];
+                const totalDays = leaveBalances[employeeId].totalLeaveTaken;
                 
-                const card = document.createElement('div');
-                card.className = 'bg-gray-800 p-4 rounded-lg shadow';
-                card.innerHTML = `<h5 class="text-lg font-semibold text-blue-300 mb-2">${employeeName} (${employeeId})</h5>`;
-                
-                const ul = document.createElement('ul');
-                ul.className = 'list-disc list-inside text-gray-200 text-sm';
-                for (const type in balance) {
-                    ul.innerHTML += `<li>${type}: ${balance[type]} days</li>`;
+                // Only display if there's actual leave taken
+                if (totalDays > 0) {
+                    const card = document.createElement('div');
+                    card.className = 'bg-gray-800 p-4 rounded-lg shadow';
+                    card.innerHTML = `<h5 class="text-lg font-semibold text-blue-300 mb-2">${employeeName} (${employeeId})</h5>`;
+                    
+                    const ul = document.createElement('ul');
+                    ul.className = 'list-disc list-inside text-gray-200 text-sm';
+                    ul.innerHTML += `<li>Total Leave Taken: ${totalDays} days</li>`;
+                    card.appendChild(ul);
+                    leaveBalanceSummary.appendChild(card);
                 }
-                card.appendChild(ul);
-                leaveBalanceSummary.appendChild(card);
             }
         }
 
@@ -1784,7 +2125,7 @@
 
                             await updateDoc(leaveDocRef, {
                                 status: 'Approved',
-                                approvedBy: currentLoggedInEmployee ? currentLoggedInEmployee.id : 'Admin', // Use actual admin ID if available
+                                approvedBy: 'Admin', // Use a generic 'Admin' string for PIN-based auth
                                 approvedAt: new Date().toISOString()
                             });
                             showMessage("Leave request approved!", "success", true); // Auto-dismiss
@@ -1810,7 +2151,7 @@
                         const leaveDocRef = doc(db, `artifacts/${appId}/public/data/leaveRecords`, docId);
                         await updateDoc(leaveDocRef, {
                             status: 'Rejected',
-                            approvedBy: currentLoggedInEmployee ? currentLoggedInEmployee.id : 'Admin', // Use actual admin ID if available
+                            approvedBy: 'Admin', // Use a generic 'Admin' string for PIN-based auth
                             approvedAt: new Date().toISOString()
                         });
                         showMessage("Leave request rejected!", "success", true); // Auto-dismiss
@@ -1833,7 +2174,8 @@
                         const leaveDocRef = doc(db, `artifacts/${appId}/public/data/leaveRecords`, docId);
                         await deleteDoc(leaveDocRef);
                         showMessage("Leave record deleted!", "success", true); // Auto-dismiss
-                    } catch (e) {
+                    }
+                    catch (e) {
                         console.error("Error deleting leave record:", e);
                         showMessage("Failed to delete leave record. Check console.", "error");
                     }
@@ -1890,29 +2232,91 @@
 
             // Initialize balances for all known employees
             predefinedTeamMembers.forEach(member => {
-                balances[member.id] = { ...INITIAL_LEAVE_BALANCE };
+                balances[member.id] = { totalLeaveTaken: 0 }; // Initialize with totalLeaveTaken
             });
 
-            // Apply approved leaves
+            // Sum up approved leave days for totalLeaveTaken
             leaveRecords.forEach(record => {
-                if (record.status === 'Approved' && record.leaveType !== 'Unpaid') {
-                    if (balances[record.employeeId] && balances[record.employeeId][record.leaveType] !== undefined) {
-                        balances[record.employeeId][record.leaveType] -= record.daysRequested;
+                if (record.status === 'Approved') {
+                    if (balances[record.employeeId] !== undefined) {
+                        balances[record.employeeId].totalLeaveTaken += record.daysRequested;
                     }
                 }
             });
-            leaveBalances = balances;
-            updateLeaveBalancesDisplay();
+            leaveBalances = balances; // Assign to global 'leaveBalances'
+            updateLeaveBalancesDisplay(); // Call display function after calculation
         }
+
+        // --- Dashboard Metrics Functions ---
+        function updateDashboardMetrics() {
+            if (!isAdminLoggedIn || !isAdminMode) {
+                if(dashboardOverviewSection) dashboardOverviewSection.classList.add('hidden');
+                return;
+            } else {
+                if(dashboardOverviewSection) dashboardOverviewSection.classList.remove('hidden');
+            }
+
+            // Total Employees
+            if (totalEmployeesCount) {
+                totalEmployeesCount.textContent = predefinedTeamMembers.length.toString();
+            }
+
+            // Active Logins Today
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const activeLoginsTodaySet = new Set();
+            extendedHoursEntries.forEach(entry => {
+                const entryDate = new Date(entry.date);
+                entryDate.setHours(0, 0, 0, 0);
+                // Check if the entry date (when the work was logged) is today
+                if (entryDate.getTime() === today.getTime()) {
+                    activeLoginsTodaySet.add(entry.employeeId);
+                }
+            });
+            if (activeLoginsCount) {
+                activeLoginsCount.textContent = activeLoginsTodaySet.size.toString(); // Corrected: use .size and assign to activeLoginsCount DOM element
+            }
+
+            // Total Overtime Hours This Month
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+            let totalOvertime = 0;
+            extendedHoursEntries.forEach(entry => {
+                const entryDate = new Date(entry.date);
+                if (entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear) {
+                    totalOvertime += parseFloat(entry.overtimeHours || 0);
+                }
+            });
+            if (totalOvertimeMonth) {
+                totalOvertimeMonth.textContent = totalOvertime.toFixed(2);
+            }
+        }
+
+        // Function to prevent Enter key from submitting forms implicitly
+        function preventEnterKeyDefault(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                // No explicit focus movement, just prevent default submission behavior
+            }
+        }
+
+        // Attach preventEnterKeyDefault to relevant input fields
+        if (adminPinInput) adminPinInput.addEventListener('keydown', preventEnterKeyDefault);
+        if (newEmployeeIdInput) newEmployeeIdInput.addEventListener('keydown', preventEnterKeyDefault);
+        if (newEmployeeNameInput) newEmployeeNameInput.addEventListener('keydown', preventEnterKeyDefault);
+        if (leaveStartDateInput) leaveStartDateInput.addEventListener('keydown', preventEnterKeyDefault);
+        if (leaveEndDateInput) leaveEndDateInput.addEventListener('keydown', preventEnterKeyDefault);
+        if (filterStartDateInput) filterStartDateInput.addEventListener('keydown', preventEnterKeyDefault);
+        if (filterEndDateInput) filterEndDateInput.addEventListener('keydown', preventEnterKeyDefault);
 
 
         // Initialize Firebase and set up Firestore listener
         document.addEventListener('DOMContentLoaded', () => {
             loadLocalState(); // Load dark mode preference early
 
-            if (firebaseConfig.apiKey === "YOUR_ACTUAL_API_KEY_GOES_HERE" || firebaseConfig.projectId === "YOUR_PROJECT_ID_GOES_HERE" || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
+            if (firebaseConfig.apiKey === "" || firebaseConfig.projectId === "" || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
                 console.error("Firebase Configuration Error: Placeholder API Key or Project ID found, or config is incomplete. Please update firebaseConfig with your actual Firebase project details from the Firebase Console.");
-                showMessage("Firebase Setup Error: Your API Key is not valid or configuration is missing. Please replace the placeholder values in 'firebaseConfig' in the code with your actual Firebase project details from the Firebase Console.", "error");
+                showMessage("Firebase Setup Error: Your Firebase API Key or Project ID is incorrect. Please obtain the correct details from your Firebase Console and update 'firebaseConfig' in the code.", "error"); // Updated message
                 return; 
             }
             try {
@@ -1926,11 +2330,15 @@
                         currentUserId = user.uid;
                         // if(currentUserIdDisplay) currentUserIdDisplay.textContent = currentUserId; // User ID display is now hidden
                         console.log("Firebase authenticated. User ID:", currentUserId);
+                        // isAdminLoggedIn and isAdminMode are now controlled by PIN login
+                        
                         // Call seed function after auth is ready and db is available
                         await seedTeamMembersIfEmpty(); 
                         setupFirestoreListeners(); 
                     } else {
                         currentUserId = null;
+                        // isAdminLoggedIn and isAdminMode are already set by loadLocalState() or PIN logic
+                        adminStatus.textContent = "Not logged in as Admin.";
                         // if(currentUserIdDisplay) currentUserIdDisplay.textContent = 'Not authenticated'; // User ID display is now hidden
                         console.log("Firebase: No user signed in. Attempting anonymous sign-in.");
                         try {
@@ -1946,6 +2354,8 @@
                         }
                     }
                     updateAdminUI(); 
+                    saveLocalState(); // Save the new auth state
+                    updateDashboardMetrics(); // Initial dashboard update after auth state is known
                 }, (error) => {
                     console.error("Error in onAuthStateChanged:", error);
                     showMessage("Firebase authentication state error. Check console.", "error");
@@ -2003,6 +2413,7 @@
                 extendedHoursEntries = fetchedEntries; 
                 console.log("Extended hours entries updated from Firestore:", extendedHoursEntries);
                 applyFilter(); 
+                updateDashboardMetrics(); // Update dashboard when extended hours data changes
             }, (error) => {
                 console.error("Error listening to extendedHours Firestore:", error);
                 showMessage("Error loading real-time data from database. Check console for details.", "error");
@@ -2029,6 +2440,7 @@
                     renderManageEmployeesTable(); 
                 }
                 calculateLeaveBalances(); // Recalculate balances when team members change
+                updateDashboardMetrics(); // Update dashboard when team members data changes
             }, (error) => {
                 console.error("Error listening to teamMembers Firestore:", error);
                 showMessage("Error loading team members from database. Check console for details.", "error");
