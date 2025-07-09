@@ -1,204 +1,64 @@
 <!DOCTYPE html>
-<html lang="en" class="light"> <!-- Default to light mode -->
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Extended Hours Tracker</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- jsPDF and html2canvas for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* Custom styles for Inter font and some utility classes not directly in Tailwind */
-        body {
-            font-family: 'Inter', sans-serif;
-            @apply bg-gray-950 text-gray-100; /* Deep dark background */
-        }
-        /* Dark mode specific styles (kept for future proofing if you re-add it, but not actively used) */
-        html.dark body {
-            @apply bg-gray-950 text-gray-100;
-        }
+        /* Base styles for body and HTML */
+        body { font-family: 'Inter', sans-serif; @apply bg-gray-900 text-gray-100; }
+        html.dark body { @apply bg-gray-900 text-gray-100; }
 
-        /* Custom scrollbar for table */
-        .table-container::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        .table-container::-webkit-scrollbar-track {
-            background: #2a2a2a; /* Darker track */
-            border-radius: 10px;
-        }
-        .table-container::-webkit-scrollbar-thumb {
-            background: #555; /* Darker thumb */
-            border-radius: 10px;
-        }
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background: #777; /* Slightly lighter on hover */
-        }
+        /* Scrollbar styles for table containers */
+        .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
+        .table-container::-webkit-scrollbar-track { background: #1f2937; /* gray-800 */ border-radius: 10px; }
+        .table-container::-webkit-scrollbar-thumb { background: #4b5563; /* gray-600 */ border-radius: 10px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #6b7280; /* gray-500 */ }
 
-        /* Admin Access Section - Solid dark red background from image */
-        .admin-panel-solid {
-            @apply bg-red-950 rounded-xl shadow-xl border border-red-800; /* Very dark red with border */
-        }
+        /* Admin panel specific styling */
+        .admin-panel-solid { @apply bg-blue-950 rounded-xl shadow-xl border border-blue-800; }
 
-        /* Message Box Styling - Updated for central dialog to match light modal in image */
-        .message-dialog-backdrop {
-            position: fixed; /* Explicitly fixed positioning to viewport */
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7); /* Slightly less opaque overlay */
-            display: flex; /* Use flexbox for centering content */
-            align-items: center; /* Center vertically */
-            justify-content: center; /* Center horizontally */
-            z-index: 9999; /* High z-index to ensure it's on top of everything */
-        }
-        .message-dialog {
-            /* Tailwind classes for styling the dialog box itself */
-            @apply p-8 rounded-lg shadow-2xl max-w-sm w-11/12 text-center bg-red-700 text-white border-2 border-red-500; /* Red background, white text, red border */
-            transform: scale(0.9); /* Start slightly smaller */
-            opacity: 0; /* Start invisible */
-            transition: all 0.3s ease-out; /* Smooth transition for appearance */
-        }
-        .message-dialog-backdrop:not(.hidden) .message-dialog {
-            transform: scale(1); /* Scale up to normal size */
-            opacity: 1; /* Fade in */
-        }
-        .message-dialog h3 {
-            @apply text-3xl font-bold mb-4 text-white; /* White title */
-        }
-        .message-dialog p {
-            @apply text-lg mb-6 text-gray-100; /* Light grey message text */
-        }
-        .message-dialog button {
-            @apply px-8 py-3 rounded-full shadow-lg font-semibold transition duration-200 ease-in-out; /* Pill-shaped buttons, smoother hover */
-        }
+        /* Message Dialog styles */
+        .message-dialog-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .message-dialog { @apply p-8 rounded-lg shadow-2xl max-w-sm w-11/12 text-center bg-blue-800 text-white border-2 border-blue-600; transform: scale(0.9); opacity: 0; transition: all 0.3s ease-out; }
+        .message-dialog-backdrop:not(.hidden) .message-dialog { transform: scale(1); opacity: 1; }
+        .message-dialog h3 { @apply text-3xl font-bold mb-4 text-white; }
+        .message-dialog p { @apply text-lg mb-6 text-gray-100; }
+        .message-dialog button { @apply px-8 py-3 rounded-full shadow-lg font-semibold transition duration-200 ease-in-out; }
 
-        /* Confirmation Dialog Styling (similar to message dialog for consistency) */
-        .confirm-dialog-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
-        .confirm-dialog {
-            @apply bg-red-700 p-8 rounded-lg shadow-2xl max-w-sm w-11/12 text-center border-2 border-red-500 text-white; /* Red background, white text, red border */
-            transform: scale(0.9);
-            opacity: 0;
-            transition: all 0.3s ease-out;
-        }
-        .confirm-dialog-backdrop:not(.hidden) .confirm-dialog {
-            transform: scale(1);
-            opacity: 1;
-        }
-        .confirm-dialog h3 {
-            @apply text-white text-3xl font-bold mb-4;
-        }
-        .confirm-dialog p {
-            @apply text-gray-100 text-lg mb-6;
-        }
-        .confirm-dialog button {
-            @apply px-8 py-3 rounded-full shadow-lg font-semibold transition duration-200 ease-in-out;
-        }
+        /* Confirm Dialog styles */
+        .confirm-dialog-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .confirm-dialog { @apply bg-blue-800 p-8 rounded-lg shadow-2xl max-w-sm w-11/12 text-center border-2 border-blue-600 text-white; transform: scale(0.9); opacity: 0; transition: all 0.3s ease-out; }
+        .confirm-dialog-backdrop:not(.hidden) .confirm-dialog { transform: scale(1); opacity: 1; }
+        .confirm-dialog h3 { @apply text-white text-3xl font-bold mb-4; }
+        .confirm-dialog p { @apply text-gray-100 text-lg mb-6; }
+        .confirm-dialog button { @apply px-8 py-3 rounded-full shadow-lg font-semibold transition duration-200 ease-in-out; }
 
-        /* Admin Settings Modal Styling */
-        .admin-settings-modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9); /* Darker overlay for settings */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000; /* Even higher z-index */
-        }
-        .admin-settings-modal {
-            /* This will be the inner container with max-width and scrollability */
-            @apply bg-gray-800 rounded-lg w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] border-2 border-emerald-600; /* Added stronger border */
-        }
-        .admin-settings-modal h3 {
-            @apply text-gray-100 text-3xl font-bold mb-6; /* Larger title */
-        }
-        .admin-settings-modal h4 {
-            @apply text-emerald-400 text-xl font-semibold mb-4; /* Consistent sub-heading style */
-        }
-        .admin-settings-modal pre {
-            @apply bg-gray-700 p-4 rounded-md text-sm overflow-x-auto;
-        }
-        .admin-settings-modal .scrollable-content {
-            @apply overflow-y-auto p-4 space-y-6;
-        }
-        .admin-settings-modal .modal-footer {
-            @apply p-4 border-t border-gray-700 flex justify-end;
-        }
-        .admin-settings-modal button {
-            /* Default button style for modal, can be overridden by specific buttons */
-            @apply px-6 py-3 bg-emerald-600 text-white font-semibold rounded-md shadow-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out;
-        }
+        /* Admin Settings Modal styles */
+        .admin-settings-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+        .admin-settings-modal { @apply bg-gray-800 rounded-lg w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] border-2 border-blue-600; }
+        .admin-settings-modal h3 { @apply text-gray-100 text-3xl font-bold mb-6; }
+        .admin-settings-modal h4 { @apply text-blue-300 text-xl font-semibold mb-4; }
+        .admin-settings-modal pre { @apply bg-gray-700 p-4 rounded-md text-sm overflow-x-auto; }
+        .admin-settings-modal .scrollable-content { @apply overflow-y-auto p-4 space-y-6; }
+        .admin-settings-modal .modal-footer { @apply p-4 border-t border-gray-700 flex justify-end; }
+        .admin-settings-modal button { @apply px-6 py-3 bg-blue-600 text-white font-semibold rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out; }
 
-        /* Dark Mode Toggle Switch CSS */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 48px; /* Slightly larger width */
-            height: 24px; /* Slightly larger height */
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 24px; /* Half of height for rounded corners */
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px; /* Slightly smaller than slider height */
-            width: 18px; /* Slightly smaller than slider height */
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #2196F3;
-        }
-
-        input:focus + .slider {
-            box-shadow: 0 0 1px #2196F3;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(24px); /* Move by (width - height + padding) */
-        }
+        /* Toggle switch styles */
+        .switch { position: relative; display: inline-block; width: 48px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2563eb; /* blue-600 */ }
+        input:focus + .slider { box-shadow: 0 0 1px #2563eb; }
+        input:checked + .slider:before { transform: translateX(24px); }
     </style>
 </head>
 <body class="p-4 sm:p-6 md:p-8">
-    <!-- Visual Error Alert Banner -->
+    <!-- Visual Error Message -->
     <div id="visualError" class="hidden flex items-center bg-red-600 text-white text-sm font-medium px-4 py-3 rounded-lg shadow mb-4">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -212,12 +72,12 @@
             <h3 id="messageDialogTitle">Notification</h3>
             <p id="messageDialogMessage"></p>
             <div class="message-dialog-buttons">
-                <button id="messageDialogCloseBtn" type="button" class="bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500">OK</button>
+                <button id="messageDialogCloseBtn" type="button" class="bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500">OK</button>
             </div>
         </div>
     </div>
 
-    <!-- Confirmation Dialog -->
+    <!-- Confirm Dialog -->
     <div id="confirmDialogBackdrop" class="confirm-dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle">
         <div id="confirmDialog" class="confirm-dialog">
             <h3 id="confirmDialogTitle">Confirm Action</h3>
@@ -232,12 +92,11 @@
     <!-- Admin Settings Modal -->
     <div id="adminSettingsModalBackdrop" class="admin-settings-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="adminSettingsTitle">
         <div id="adminSettingsModal" class="admin-settings-modal">
-            <div class="p-6"> <!-- Padding for the header/title area -->
+            <div class="p-6">
                 <h3 id="adminSettingsTitle">Admin Settings</h3>
             </div>
-            
-            <div class="overflow-y-auto p-4 space-y-6 flex-grow"> <!-- Scrollable content area -->
-                <!-- Add New Employee Form -->
+            <div class="overflow-y-auto p-4 space-y-6 flex-grow">
+                <!-- Add New Employee Section -->
                 <div class="p-4 border border-gray-700 rounded-md">
                     <h4 class="text-xl font-semibold mb-4 text-gray-200">Add New Employee</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -252,10 +111,10 @@
                             <p id="newEmployeeNameError" class="text-red-500 text-sm mt-1 hidden">Employee Name is required.</p>
                         </div>
                     </div>
-                    <button id="addEmployeeBtn" type="button" class="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-md shadow-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition duration-150 ease-in-out">Add Employee</button>
+                    <button id="addEmployeeBtn" type="button" class="px-4 py-2 bg-teal-500 text-white font-semibold rounded-md shadow-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-400 transition duration-150 ease-in-out">Add Employee</button>
                 </div>
 
-                <!-- Manage Existing Employees Table -->
+                <!-- Manage Existing Employees Section -->
                 <div class="mb-4">
                     <h4 class="text-xl font-semibold mb-4 text-gray-200">Manage Existing Employees</h4>
                     <div class="overflow-x-auto rounded-lg shadow-md max-h-60">
@@ -268,7 +127,6 @@
                                 </tr>
                             </thead>
                             <tbody id="manageEmployeesTableBody" class="bg-gray-800 divide-y divide-gray-700">
-                                <!-- Employee list will be dynamically inserted here -->
                                 <tr><td colspan="3" class="px-6 py-4 text-center text-gray-400">Loading employees...</td></tr>
                             </tbody>
                         </table>
@@ -295,47 +153,43 @@
                             <p id="confirmNewPinError" class="text-red-500 text-sm mt-1 hidden">New PINs do not match.</p>
                         </div>
                     </div>
-                    <button id="updatePinBtn" type="button" class="px-4 py-2 bg-purple-600 text-white font-semibold rounded-md shadow-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out">Update PIN</button>
+                    <button id="updatePinBtn" type="button" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">Update PIN</button>
                 </div>
             </div>
-
-            <div class="modal-footer"> <!-- Footer for the close button -->
+            <div class="modal-footer">
                 <button id="closeAdminSettingsBtn" type="button" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">Close Settings</button>
             </div>
         </div>
     </div>
 
-
-    <div class="max-w-7xl mx-auto bg-gray-700 p-6 rounded-xl shadow-xl border border-gray-600"> <!-- Main container with enhanced styling -->
-        <!-- Header -->
+    <!-- Main Content Container -->
+    <div class="max-w-7xl mx-auto bg-gray-800 p-6 rounded-xl shadow-xl border border-gray-700">
+        <!-- Header Section -->
         <header class="mb-8 text-center relative">
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-emerald-500 mb-2">Employee Extended Hours Tracker</h1>
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-blue-400 mb-2">Employee Extended Hours Tracker</h1>
             <p class="text-lg text-gray-400">Efficiently log and track employee extended working hours.</p>
         </header>
 
-        <!-- Removed User ID Display & Dark Mode Toggle -->
-
-        <!-- Admin Access Section - Solid dark red background from image -->
+        <!-- Admin Access Section -->
         <section id="adminAccessSection" class="mb-10 p-6 admin-panel-solid">
-            <h2 class="text-2xl font-bold text-red-300 mb-6">Admin Access</h2>
+            <h2 class="text-2xl font-bold text-red-400 mb-6">Admin Access</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                 <div>
                     <label for="adminPinInput" class="block text-sm font-medium text-gray-200 mb-1">Admin PIN</label>
                     <input type="password" id="adminPinInput" placeholder="Enter PIN" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 bg-gray-200 text-gray-900">
                     <p id="adminPinError" class="text-red-500 text-sm mt-1 hidden">Invalid PIN entered.</p>
                 </div>
-                <div class="flex flex-col sm:flex-row gap-4 col-span-2"> <!-- Adjusted column span -->
-                    <button id="adminLoginBtn" type="button" class="flex-1 px-6 py-3 bg-red-700 text-white font-semibold rounded-lg shadow-sm hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300 ease-in-out">Admin Login</button>
+                <div class="flex flex-col sm:flex-row gap-4 col-span-2">
+                    <button id="adminLoginBtn" type="button" class="flex-1 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 ease-in-out">Admin Login</button>
                     <button id="adminLogoutBtn" type="button" class="flex-1 px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-300 ease-in-out" disabled>Admin Logout</button>
                 </div>
             </div>
-            <p id="adminStatus" class="mt-4 text-center text-lg font-medium text-red-200"></p>
-            <!-- Admin-specific control buttons -->
+            <p id="adminStatus" class="mt-4 text-center text-lg font-medium text-red-300"></p>
             <div class="mt-6 flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4">
-                <button id="toggleAdminModeBtn" type="button" class="px-6 py-3 bg-yellow-600 text-white font-semibold rounded-lg shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all duration-300 ease-in-out hidden">
+                <button id="toggleAdminModeBtn" type="button" class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 transition-all duration-300 ease-in-out hidden">
                     Enable Admin Mode
                 </button>
-                <button id="adminSettingsBtn" type="button" class="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-300 ease-in-out hidden">
+                <button id="adminSettingsBtn" type="button" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 ease-in-out hidden">
                     Admin Settings
                 </button>
             </div>
@@ -343,39 +197,35 @@
 
         <!-- Dashboard Overview Section -->
         <section id="dashboardOverviewSection" class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800 hidden">
-            <h2 class="text-2xl font-bold text-emerald-400 mb-6">Dashboard Overview</h2>
+            <h2 class="text-2xl font-bold text-blue-300 mb-6">Dashboard Overview</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Total Employees Card -->
                 <div class="bg-gray-800 p-4 rounded-lg shadow flex flex-col items-center">
-                    <p class="text-xl font-semibold text-emerald-300">Total Employees</p>
-                    <p id="totalEmployeesCount" class="text-2xl text-emerald-100">0</p>
+                    <p class="text-xl font-semibold text-blue-200">Total Employees</p>
+                    <p id="totalEmployeesCount" class="text-2xl text-gray-100">0</p>
                 </div>
-                <!-- Active Logins Today Card -->
                 <div class="bg-gray-800 p-4 rounded-lg shadow flex flex-col items-center">
-                    <p class="text-xl font-semibold text-emerald-300">Active Logins Today</p>
-                    <p id="activeLoginsCount" class="text-2xl text-emerald-100">0</p>
+                    <p class="text-xl font-semibold text-blue-200">Active Logins Today</p>
+                    <p id="activeLoginsCount" class="text-2xl text-gray-100">0</p>
                 </div>
-                <!-- Total Overtime Hours This Month Card -->
                 <div class="bg-gray-800 p-4 rounded-lg shadow flex flex-col items-center">
-                    <p class="text-xl font-semibold text-emerald-300">Total Overtime This Month</p>
-                    <p id="totalOvertimeMonth" class="text-2xl text-emerald-100">0.00</p>
+                    <p class="text-xl font-semibold text-blue-200">Total Overtime This Month</p>
+                    <p id="totalOvertimeMonth" class="text-2xl text-gray-100">0.00</p>
                 </div>
             </div>
         </section>
 
         <!-- Employee Login/Logout Section -->
         <section class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800">
-            <h2 class="text-2xl font-bold text-emerald-400 mb-6">Employee Login/Logout</h2>
+            <h2 class="text-2xl font-bold text-blue-300 mb-6">Employee Login/Logout</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                 <div>
                     <label for="employeeSelect" class="block text-sm font-medium text-gray-300 mb-1">Select Employee</label>
-                    <select id="employeeSelect" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-gray-200 text-gray-900">
+                    <select id="employeeSelect" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500 bg-gray-200 text-gray-900">
                         <option value="">-- Select an Employee --</option>
-                        <!-- Employee options will be dynamically inserted here -->
                     </select>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <button id="loginBtn" type="button" class="flex-1 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 ease-in-out">Login</button>
+                    <button id="loginBtn" type="button" class="flex-1 px-6 py-3 bg-teal-500 text-white font-semibold rounded-lg shadow-sm hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-400 transition-all duration-300 ease-in-out">Login</button>
                     <button id="logoutBtn" type="button" class="flex-1 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300 ease-in-out" disabled>Logout</button>
                 </div>
             </div>
@@ -385,8 +235,6 @@
         <!-- Leave Records Management Section -->
         <section class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800">
             <h2 class="text-2xl font-bold text-blue-400 mb-6">Leave Records Management</h2>
-            
-            <!-- Request Leave Form -->
             <div class="mb-8 p-4 border border-gray-700 rounded-md">
                 <h4 class="text-xl font-semibold mb-4 text-gray-200">Request New Leave</h4>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
@@ -394,7 +242,6 @@
                         <label for="leaveEmployeeSelect" class="block text-sm font-medium text-gray-300 mb-1">Employee</label>
                         <select id="leaveEmployeeSelect" class="w-full p-2 border border-gray-600 rounded-md shadow-sm bg-gray-200 text-gray-900">
                             <option value="">-- Select Employee --</option>
-                            <!-- Employee options will be dynamically inserted here -->
                         </select>
                         <p id="leaveEmployeeSelectError" class="text-red-500 text-sm mt-1 hidden">Please select an employee.</p>
                     </div>
@@ -422,8 +269,6 @@
                 </div>
                 <button id="requestLeaveBtn" type="button" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">Request Leave</button>
             </div>
-
-            <!-- Leave Requests Table -->
             <div class="mb-4">
                 <h4 class="text-xl font-semibold mb-4 text-gray-200">Pending & Approved Leave Requests</h4>
                 <div id="leaveTableContainer" class="overflow-x-auto rounded-lg shadow-md table-container max-h-60 border border-gray-700">
@@ -440,7 +285,6 @@
                             </tr>
                         </thead>
                         <tbody id="leaveRequestsTableBody" class="divide-y divide-gray-700">
-                            <!-- Leave requests will be dynamically inserted here -->
                             <tr><td colspan="7" class="px-6 py-4 text-center text-sm text-gray-400">No leave requests.</td></tr>
                         </tbody>
                     </table>
@@ -450,40 +294,36 @@
                     <button id="exportLeavePdfBtn" type="button" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 ease-in-out hidden">Export Leave Data to PDF</button>
                 </div>
             </div>
-
-            <!-- Leave Balance Summary -->
             <div>
                 <h4 class="text-xl font-semibold mb-4 text-gray-200">Leave Balance Summary</h4>
                 <div id="leaveBalanceSummary" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    <!-- Leave balances will be dynamically inserted here -->
                     <p class="text-gray-400 col-span-full" id="noLeaveBalanceMessage">No leave balance data.</p>
                 </div>
             </div>
         </section>
 
-
-        <!-- Filter Section -->
+        <!-- Filter Entries Section -->
         <section id="filterEntriesSection" class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800 hidden">
-            <h2 class="text-2xl font-bold text-emerald-400 mb-6">Filter Entries</h2>
+            <h2 class="text-2xl font-bold text-blue-300 mb-6">Filter Entries</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="filterStartDate" class="block text-sm font-medium text-gray-300 mb-1">From Date</label>
-                    <input type="date" id="filterStartDate" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-gray-200 text-gray-900">
+                    <input type="date" id="filterStartDate" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500 bg-gray-200 text-gray-900">
                     <p id="filterStartDateError" class="text-red-500 text-sm mt-1 hidden">Invalid start date.</p>
                 </div>
                 <div>
                     <label for="filterEndDate" class="block text-sm font-medium text-gray-300 mb-1">To Date</label>
-                    <input type="date" id="filterEndDate" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-gray-200 text-gray-900">
+                    <input type="date" id="filterEndDate" class="w-full p-3 border border-gray-600 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500 bg-gray-200 text-gray-900">
                     <p id="filterEndDateError" class="text-red-500 text-sm mt-1 hidden">Invalid end date.</p>
                 </div>
             </div>
             <div class="mt-6 flex justify-end space-x-4">
-                <button id="applyFilterBtn" type="button" class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 ease-in-out">Apply Filter</button>
+                <button id="applyFilterBtn" type="button" class="px-6 py-3 bg-teal-500 text-white font-semibold rounded-lg shadow-sm hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-400 transition-all duration-300 ease-in-out">Apply Filter</button>
                 <button id="clearFilterBtn" type="button" class="px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-300 ease-in-out">Clear Filter</button>
             </div>
         </section>
 
-        <!-- Table to Display Entries -->
+        <!-- Extended Hours Log Section -->
         <section class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800">
             <h2 class="text-2xl font-bold text-gray-100 mb-6">Extended Hours Log</h2>
             <div id="extendedHoursTableContainer" class="overflow-x-auto rounded-lg shadow-md table-container max-h-96 border border-gray-700">
@@ -491,7 +331,7 @@
                     <thead class="bg-gray-700 sticky top-0">
                         <tr>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider delete-column-header hidden">
-                                <input type="checkbox" id="selectAllCheckboxes" class="form-checkbox h-4 w-4 text-emerald-500 transition duration-150 ease-in-out rounded" aria-label="Select all entries">
+                                <input type="checkbox" id="selectAllCheckboxes" class="form-checkbox h-4 w-4 text-blue-500 transition duration-150 ease-in-out rounded" aria-label="Select all entries">
                             </th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Employee Name</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Employee ID</th>
@@ -503,98 +343,90 @@
                         </tr>
                     </thead>
                     <tbody id="entriesTableBody" class="divide-y divide-gray-700">
-                        <!-- Entries will be dynamically inserted here -->
                     </tbody>
                 </table>
             </div>
             <div class="mt-6 flex justify-end space-x-4">
                 <button id="deleteSelectedBtn" type="button" class="px-6 py-3 bg-red-700 text-white font-semibold rounded-lg shadow-sm hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600 transition-all duration-300 ease-in-out hidden">Delete Selected Entries</button>
-                <button id="exportCsvBtn" type="button" class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 ease-in-out hidden">Export to CSV</button>
-                <button id="exportPdfBtn" type="button" class="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 ease-in-out hidden">Export to PDF</button>
+                <button id="exportCsvBtn" type="button" class="px-6 py-3 bg-teal-500 text-white font-semibold rounded-lg shadow-sm hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-400 transition-all duration-300 ease-in-out hidden">Export to CSV</button>
+                <button id="exportPdfBtn" type="button" class="px-6 py-3 bg-teal-500 text-white font-semibold rounded-lg shadow-sm hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-400 transition-all duration-300 ease-in-out hidden">Export to PDF</button>
             </div>
         </section>
 
-        <!-- Summary Section -->
+        <!-- Summary: Total Hours Per Employee Section -->
         <section class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800">
-            <h2 class="text-2xl font-bold text-emerald-400 mb-6">Summary: Total Hours Per Employee</h2>
+            <h2 class="text-2xl font-bold text-blue-300 mb-6">Summary: Total Hours Per Employee</h2>
             <div id="summarySection" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                <!-- Summary will be dynamically inserted here -->
                 <p class="text-gray-400 col-span-full" id="noSummaryMessage">No data to display summary.</p>
             </div>
         </section>
 
         <!-- Monthly Overtime Report Section -->
         <section class="mb-10 p-6 bg-gray-900 rounded-xl shadow-xl border border-gray-800">
-            <h2 class="text-2xl font-bold text-emerald-400 mb-6">Monthly Overtime Report</h2>
+            <h2 class="text-2xl font-bold text-blue-300 mb-6">Monthly Overtime Report</h2>
             <div id="monthlyOvertimeReport" class="space-y-4">
                 <p class="text-gray-400" id="noMonthlyReportMessage">No overtime data to display for any month.</p>
             </div>
         </section>
     </div>
 
-    <footer class="text-center text-gray-500 text-sm py-4">
-        Made By – RK Ardur Team
-    </footer>
+    <!-- Footer -->
+    <footer class="text-center text-gray-500 text-sm py-4">Made By – RK Ardur Team</footer>
 
-    <!-- Toast Notifications Container -->
+    <!-- Toast Container -->
     <div id="toastContainer" class="fixed top-4 right-4 space-y-2 z-50"></div>
 
-    <!-- Confirmation Modal for Employee Edit -->
+    <!-- Confirm Edit Modal -->
     <div id="confirmEditModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
         <div class="bg-gray-800 rounded-lg p-6 w-full max-w-sm space-y-4 shadow-lg">
             <p class="text-gray-200 text-lg text-center">Are you sure you want to edit this employee?</p>
             <div class="flex justify-end space-x-2">
-                <button id="confirmEditYes" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg font-semibold">Yes</button>
+                <button id="confirmEditYes" class="bg-teal-500 hover:bg-teal-600 text-white px-3 py-2 rounded-lg font-semibold">Yes</button>
                 <button id="confirmEditNo" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg font-semibold">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- Edit Form Modal for Employee -->
+    <!-- Edit Form Modal -->
     <div id="editFormModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
         <div class="bg-gray-800 rounded-lg p-6 w-full max-w-sm space-y-4 shadow-lg">
             <h3 class="text-white font-bold text-2xl mb-4 text-center">Edit Employee</h3>
-            <input id="editEmployeeID" placeholder="Employee ID" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500 focus:outline-none"/>
+            <input id="editEmployeeID" placeholder="Employee ID" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-teal-500 focus:outline-none"/>
             <p id="editEmployeeIDError" class="text-red-500 text-sm mt-1 hidden">Employee ID cannot be empty or duplicate.</p>
-            <input id="editEmployeeName" placeholder="Employee Name" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-emerald-500 focus:outline-none"/>
+            <input id="editEmployeeName" placeholder="Employee Name" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-teal-500 focus:outline-none"/>
             <p id="editEmployeeNameError" class="text-red-500 text-sm mt-1 hidden">Employee Name cannot be empty.</p>
             <div class="flex justify-end space-x-2 pt-4">
-                <button id="saveEditBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg font-semibold">Save</button>
+                <button id="saveEditBtn" class="bg-teal-500 hover:bg-teal-600 text-white px-3 py-2 rounded-lg font-semibold">Save</button>
                 <button id="cancelEditBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg font-semibold">Cancel</button>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        // Firebase Imports (required for cloud database)
+    <script type="module" defer>
+        // Firebase imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-        // Only import necessary Firebase Auth functions for anonymous sign-in
         import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot, query, orderBy, getDocs, where, setDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
-        // Firebase Initialization Variables
+        // Global Firebase variables
         let app;
         let db;
         let auth;
-        let currentUserId = null; // Store Firebase Authentication User ID
+        let currentUserId = null;
 
-        // Your Firebase Project Configuration
+        // Firebase configuration (replace with your actual Firebase project details)
         const firebaseConfig = {
-          // IMPORTANT: Replace these with your actual Firebase project details from the Firebase Console
-          // Go to Project settings -> Your apps -> Web app -> Firebase SDK snippet -> Config
-          apiKey: "AIzaSyBSHQNO1us-HL1bnFUzefkSnhbwdESVhME",
-          authDomain: "admin-97140.firebaseapp.com",
-          projectId: "admin-97140",
-          storageBucket: "admin-97140.firebasestorage.app",
-          messagingSenderId: "699315429448",
-          appId: "1:699315429448:web:17ef8cdf365f5ecd29387d",
-          measurementId: "G-SZBZ0VLFVC"
+            apiKey: "AIzaSyBSHQNO1us-HL1bnFUzefkSnhbwdESVhME",
+            authDomain: "admin-97140.firebaseapp.com",
+            projectId: "admin-97140",
+            storageBucket: "admin-97140.firebasestorage.app",
+            messagingSenderId: "699315429448",
+            appId: "1:699315429448:web:17ef8cdf365f5ecd29387d",
+            measurementId: "G-SZBZ0VLFVC"
         };
-        // Use your projectId as the appId for the Firestore collection path
         const appId = firebaseConfig.projectId;
 
-        // --- EMPLOYEE & ADMIN ACCESS CONFIGURATION ---
-        // This array will now be populated dynamically from Firestore
+        // Application state variables
         let predefinedTeamMembers = [
             { id: "AT024", name: "Aryan" },
             { id: "AT0238", name: "Aditya" },
@@ -604,80 +436,48 @@
             { id: "AT0085", name: "Rushikesh" },
             { id: "AT0244", name: "Abhijeet" },
             { id: "AT0176", name: "Rohan" },
-            { id: "AT0000", name: "Vishal" } // Added Vishal with a placeholder ID, assuming it was missing
-        ]; 
-
-        // The Admin PIN for authentication (will be loaded from Firestore)
-        let storedAdminPin = "123456"; // Default fallback, will be overwritten by Firestore
-
-
-        // ---------------------------------------------
-
-        // Array to store extended hours entries (populated by Firestore)
+            { id: "AT0000", name: "Vishal" }
+        ];
+        let storedAdminPin = "123456";
         let extendedHoursEntries = [];
-        let selectedEntryIds = new Set(); // To store IDs of selected entries for multi-delete
-
-        // Overtime threshold in hours (e.g., anything above this is overtime)
+        let selectedEntryIds = new Set();
         const OVERTIME_THRESHOLD_HOURS = 9;
-
-        // State variable for current logged-in employee details (for regular users)
-        let currentLoggedInEmployee = null; // Stores { id: "AT0085", name: "rushi", loginTime: Date object }
-
-        // State variable for admin login status (separate from employee login)
+        let currentLoggedInEmployee = null;
         let isAdminLoggedIn = false;
-
-        // State variable for Admin Mode
         let isAdminMode = false;
+        let leaveRecords = [];
+        let leaveBalances = {};
+        const INITIAL_LEAVE_BALANCE = { Annual: 15, Sick: 7, Casual: 5, Unpaid: 999 };
 
-        // --- Leave Management Variables ---
-        let leaveRecords = []; // Stores all leave requests
-        let leaveBalances = {}; // Stores current leave balances per employee { employeeId: { Annual: 10, Sick: 5, ... } }
-        const INITIAL_LEAVE_BALANCE = { // Kept for potential future use or display, but not enforced
-            Annual: 15,
-            Sick: 7,
-            Casual: 5,
-            Unpaid: 999 
-        };
-
-        // DOM Elements - Employee Login
-        const employeeSelect = document.getElementById('employeeSelect'); // Changed to select element
+        // DOM element references
+        const employeeSelect = document.getElementById('employeeSelect');
         const loginBtn = document.getElementById('loginBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const employeeLoginStatus = document.getElementById('employeeLoginStatus');
-
-        // DOM Elements - Admin Access
         const adminAccessSection = document.getElementById('adminAccessSection');
-        const adminPinInput = document.getElementById('adminPinInput'); // Changed from adminEmailInput
+        const adminPinInput = document.getElementById('adminPinInput');
         const adminLoginBtn = document.getElementById('adminLoginBtn');
         const adminLogoutBtn = document.getElementById('adminLogoutBtn');
         const adminStatus = document.getElementById('adminStatus');
-        const adminPinError = document.getElementById('adminPinError'); // Inline error for admin PIN
-
-        // DOM Elements - General Controls
+        const adminPinError = document.getElementById('adminPinError');
         const entriesTableBody = document.getElementById('entriesTableBody');
         const summarySection = document.getElementById('summarySection');
         const exportCsvBtn = document.getElementById('exportCsvBtn');
-        const exportPdfBtn = document.getElementById('exportPdfBtn'); // New PDF export button for extended hours
+        const exportPdfBtn = document.getElementById('exportPdfBtn');
         const filterStartDateInput = document.getElementById('filterStartDate');
         const filterEndDateInput = document.getElementById('filterEndDate');
-        const applyFilterBtn = document.getElementById('applyFilterBtn'); 
+        const applyFilterBtn = document.getElementById('applyFilterBtn');
         const clearFilterBtn = document.getElementById('clearFilterBtn');
         const noSummaryMessage = document.getElementById('noSummaryMessage');
         const monthlyOvertimeReportSection = document.getElementById('monthlyOvertimeReport');
         const noMonthlyReportMessage = document.getElementById('noMonthlyReportMessage');
-        const filterEntriesSection = document.getElementById('filterEntriesSection'); 
+        const filterEntriesSection = document.getElementById('filterEntriesSection');
         const filterStartDateError = document.getElementById('filterStartDateError');
         const filterEndDateError = document.getElementById('filterEndDateError');
-
-
         const toggleAdminModeBtn = document.getElementById('toggleAdminModeBtn');
         const adminSettingsBtn = document.getElementById('adminSettingsBtn');
-
-        // DOM Elements - Multi-Delete
         const selectAllCheckboxes = document.getElementById('selectAllCheckboxes');
         const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
-
-        // Admin Settings Modal Elements
         const adminSettingsModalBackdrop = document.getElementById('adminSettingsModalBackdrop');
         const closeAdminSettingsBtn = document.getElementById('closeAdminSettingsBtn');
         const newEmployeeIdInput = document.getElementById('newEmployeeId');
@@ -686,8 +486,6 @@
         const manageEmployeesTableBody = document.getElementById('manageEmployeesTableBody');
         const newEmployeeIdError = document.getElementById('newEmployeeIdError');
         const newEmployeeNameError = document.getElementById('newEmployeeNameError');
-
-        // New PIN Change Elements
         const oldPinInput = document.getElementById('oldPinInput');
         const newPinInput = document.getElementById('newPinInput');
         const confirmNewPinInput = document.getElementById('confirmNewPinInput');
@@ -695,31 +493,21 @@
         const oldPinError = document.getElementById('oldPinError');
         const newPinError = document.getElementById('newPinError');
         const confirmNewPinError = document.getElementById('confirmNewPinError');
-
-
-        // Confirmation Dialog Elements (for generic confirmations)
         const confirmDialogBackdrop = document.getElementById('confirmDialogBackdrop');
         const confirmDialogTitle = document.getElementById('confirmDialogTitle');
         const confirmDialogMessage = document.getElementById('confirmDialogMessage');
         const confirmYesBtn = document.getElementById('confirmYesBtn');
         const confirmNoBtn = document.getElementById('confirmNoBtn');
-
-        // Message Dialog Elements (kept for blocking prompts)
         const messageDialogBackdrop = document.getElementById('messageDialogBackdrop');
-        const messageDialogElement = document.getElementById('messageDialog'); // Reference to the dialog itself
-        const messageDialogTitle = document.getElementById('messageDialogTitle'); 
+        const messageDialogElement = document.getElementById('messageDialog');
+        const messageDialogTitle = document.getElementById('messageDialogTitle');
         const messageDialogMessage = document.getElementById('messageDialogMessage');
         const messageDialogCloseBtn = document.getElementById('messageDialogCloseBtn');
-
-        // Visual Error Banner Elements
         const visualError = document.getElementById('visualError');
         const visualErrorMessage = document.getElementById('visualErrorMessage');
-
-        // New Modals for Employee Edit Workflow
         const confirmEditModal = document.getElementById('confirmEditModal');
         const confirmEditYes = document.getElementById('confirmEditYes');
         const confirmEditNo = document.getElementById('confirmEditNo');
-
         const editFormModal = document.getElementById('editFormModal');
         const editEmployeeID = document.getElementById('editEmployeeID');
         const editEmployeeName = document.getElementById('editEmployeeName');
@@ -727,9 +515,6 @@
         const cancelEditBtn = document.getElementById('cancelEditBtn');
         const editEmployeeIDError = document.getElementById('editEmployeeIDError');
         const editEmployeeNameError = document.getElementById('editEmployeeNameError');
-
-
-        // Leave Management DOM Elements
         const leaveEmployeeSelect = document.getElementById('leaveEmployeeSelect');
         const leaveTypeSelect = document.getElementById('leaveTypeSelect');
         const leaveStartDateInput = document.getElementById('leaveStartDate');
@@ -739,43 +524,46 @@
         const leaveBalanceSummary = document.getElementById('leaveBalanceSummary');
         const noLeaveBalanceMessage = document.getElementById('noLeaveBalanceMessage');
         const exportLeaveCsvBtn = document.getElementById('exportLeaveCsvBtn');
-        const exportLeavePdfBtn = document.getElementById('exportLeavePdfBtn'); // New PDF export button for leave records
+        const exportLeavePdfBtn = document.getElementById('exportLeavePdfBtn');
         const leaveEmployeeSelectError = document.getElementById('leaveEmployeeSelectError');
         const leaveTypeSelectError = document.getElementById('leaveTypeSelectError');
         const leaveStartDateError = document.getElementById('leaveStartDateError');
         const leaveEndDateError = document.getElementById('leaveEndDateError');
-
-
-        // Dashboard Overview DOM Elements
         const dashboardOverviewSection = document.getElementById('dashboardOverviewSection');
         const totalEmployeesCount = document.getElementById('totalEmployeesCount');
         const activeLoginsCount = document.getElementById('activeLoginsCount');
         const totalOvertimeMonth = document.getElementById('totalOvertimeMonth');
 
-        // Global cleanup functions for modals
+        // Modal cleanup functions
         let cleanupMessageModal = null;
         let cleanupConfirmModal = null;
         let cleanupAdminSettingsModal = null;
-        let cleanupConfirmEditModal = null; // New cleanup for confirm edit modal
-        let cleanupEditFormModal = null; // New cleanup for edit form modal
+        let cleanupConfirmEditModal = null;
+        let cleanupEditFormModal = null;
 
-        // Variables to hold data for the employee being edited
-        let currentEditEmployeeDocId = null; 
+        // Employee edit state variables
+        let currentEditEmployeeDocId = null;
         let currentEditEmployeeId = null;
         let currentEditEmployeeName = null;
 
-        // Helper function to get all focusable elements within a container
+        /**
+         * Retrieves all focusable elements within a given container.
+         * @param {HTMLElement} container - The container element to search within.
+         * @returns {Array<HTMLElement>} An array of focusable elements.
+         */
         function getFocusableElements(container) {
-            return Array.from(container.querySelectorAll(
-                'button:not([disabled]), [href]:not([disabled]), input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])'
-            )).filter(el => el.offsetWidth > 0 || el.offsetHeight > 0); // Filter out hidden elements
+            return Array.from(container.querySelectorAll('button:not([disabled]),[href]:not([disabled]),input:not([type="hidden"]):not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"]):not([disabled])')).filter(el => el.offsetWidth > 0 || el.offsetHeight > 0);
         }
 
-        // Generic function to set up modal accessibility (focus trapping and escape key)
+        /**
+         * Sets up accessibility features for a modal, including focus trapping.
+         * @param {HTMLElement} modalBackdropElement - The backdrop element of the modal.
+         * @param {Function} closeCallback - A callback function to execute when the modal is closed.
+         * @returns {Function|null} A cleanup function to remove event listeners, or null if no focusable elements.
+         */
         function setupModalAccessibility(modalBackdropElement, closeCallback) {
-            const previouslyFocusedElement = document.activeElement; // Store the element that had focus before opening
-
-            const modalContent = modalBackdropElement.querySelector('.message-dialog, .confirm-dialog, .admin-settings-modal, .space-y-4'); // Added .space-y-4 for new modals
+            const previouslyFocusedElement = document.activeElement;
+            const modalContent = modalBackdropElement.querySelector('.message-dialog,.confirm-dialog,.admin-settings-modal,.space-y-4');
             if (!modalContent) return null;
 
             const focusableElements = getFocusableElements(modalContent);
@@ -784,10 +572,8 @@
             const firstFocusableElement = focusableElements[0];
             const lastFocusableElement = focusableElements[focusableElements.length - 1];
 
-            // Set initial focus
             firstFocusableElement.focus();
 
-            // Trap focus and handle Escape key
             const trapFocusHandler = (e) => {
                 if (e.key === 'Tab') {
                     if (e.shiftKey) { // Shift + Tab
@@ -803,56 +589,56 @@
                     }
                 } else if (e.key === 'Escape') {
                     closeCallback();
-                    e.preventDefault(); // Prevent default Escape behavior (e.g., browser back)
+                    e.preventDefault();
                 }
             };
 
             modalBackdropElement.addEventListener('keydown', trapFocusHandler);
 
-            // Return a cleanup function
             return () => {
                 modalBackdropElement.removeEventListener('keydown', trapFocusHandler);
                 if (previouslyFocusedElement && document.body.contains(previouslyFocusedElement)) {
-                    previouslyFocusedElement.focus(); // Return focus to original element
+                    previouslyFocusedElement.focus();
                 }
             };
         }
 
-        // Function to display messages in a custom centered dialog (for blocking prompts)
-        function showMessage(message, type = 'info', autoDismiss = false, duration = 2000) { // Reduced duration
+        /**
+         * Displays a message dialog to the user.
+         * @param {string} message - The message to display.
+         * @param {string} [type='info'] - The type of message ('info', 'success', 'error').
+         * @param {boolean} [autoDismiss=false] - Whether the dialog should automatically dismiss after a duration.
+         * @param {number} [duration=2000] - Duration in milliseconds for auto-dismiss.
+         */
+        function showMessage(message, type = 'info', autoDismiss = false, duration = 2000) {
             messageDialogMessage.textContent = message;
-            // Reset classes and apply type-specific classes
             messageDialogElement.classList.remove('info', 'success', 'error');
-            // All messages now use the red background style
-            messageDialogElement.classList.add('bg-red-700', 'text-white', 'border-2', 'border-red-500');
-            messageDialogTitle.classList.add('text-white'); // Ensure title is white
+            messageDialogElement.classList.add('bg-blue-800', 'text-white', 'border-2', 'border-blue-600');
+            messageDialogTitle.classList.add('text-white');
 
-            // Set title text based on type, but keep styling consistent (red background, white text)
             if (type === 'success') {
                 messageDialogTitle.textContent = "Success!";
             } else if (type === 'error') {
                 messageDialogTitle.textContent = "Error!";
-            } else { // 'info' or default
+            } else {
                 messageDialogTitle.textContent = "Notification";
             }
-            messageDialogBackdrop.classList.remove('hidden');
 
-            // Setup accessibility for the message dialog
+            messageDialogBackdrop.classList.remove('hidden');
             cleanupMessageModal = setupModalAccessibility(messageDialogBackdrop, hideMessageDialog);
 
-            // Hide the OK button for auto-dismissing messages
             if (autoDismiss) {
                 messageDialogCloseBtn.classList.add('hidden');
-                setTimeout(() => {
-                    hideMessageDialog();
-                }, duration);
+                setTimeout(() => { hideMessageDialog(); }, duration);
             } else {
                 messageDialogCloseBtn.classList.remove('hidden');
             }
-            console.log(`[Message: ${type}] ${message}`); 
+            console.log(`[Message: ${type}] ${message}`);
         }
 
-        // Function to hide custom message dialog
+        /**
+         * Hides the message dialog.
+         */
         function hideMessageDialog() {
             messageDialogBackdrop.classList.add('hidden');
             if (cleanupMessageModal) {
@@ -862,23 +648,27 @@
         }
 
         // Event listener for message dialog close button
-        if(messageDialogCloseBtn) {
+        if (messageDialogCloseBtn) {
             messageDialogCloseBtn.addEventListener('click', hideMessageDialog);
         }
 
-
-        // Function to show custom confirmation dialog
         let currentConfirmCallback = null;
+
+        /**
+         * Displays a confirmation dialog to the user.
+         * @param {string} message - The confirmation message.
+         * @param {Function} onConfirmCallback - Callback function to execute with `true` if confirmed, `false` otherwise.
+         */
         function showConfirmDialog(message, onConfirmCallback) {
             confirmDialogMessage.textContent = message;
-            confirmDialogBackdrop.classList.remove('hidden'); 
+            confirmDialogBackdrop.classList.remove('hidden');
             currentConfirmCallback = onConfirmCallback;
-
-            // Setup accessibility for the confirmation dialog
             cleanupConfirmModal = setupModalAccessibility(confirmDialogBackdrop, hideConfirmDialog);
         }
 
-        // Function to hide custom confirmation dialog
+        /**
+         * Hides the confirmation dialog.
+         */
         function hideConfirmDialog() {
             confirmDialogBackdrop.classList.add('hidden');
             currentConfirmCallback = null;
@@ -888,8 +678,8 @@
             }
         }
 
-        // Event listeners for confirmation dialog buttons
-        if(confirmYesBtn) {
+        // Event listeners for confirm dialog buttons
+        if (confirmYesBtn) {
             confirmYesBtn.addEventListener('click', () => {
                 if (currentConfirmCallback) {
                     currentConfirmCallback(true);
@@ -898,7 +688,7 @@
             });
         }
 
-        if(confirmNoBtn) {
+        if (confirmNoBtn) {
             confirmNoBtn.addEventListener('click', () => {
                 if (currentConfirmCallback) {
                     currentConfirmCallback(false);
@@ -907,31 +697,25 @@
             });
         }
 
-        // --- New Error Handling Components ---
-
         /**
          * Displays a toast notification.
-         * @param {string} message - The message to display.
-         * @param {'success'|'error'|'info'} type - The type of toast (determines color).
+         * @param {string} message - The message to display in the toast.
+         * @param {string} [type='info'] - The type of toast ('info', 'success', 'error').
          */
         function showToast(message, type = 'info') {
-            const colors = {
-                success: 'bg-emerald-600',
-                error: 'bg-red-600',
-                info: 'bg-blue-600'
-            };
+            const colors = { success: 'bg-teal-500', error: 'bg-red-600', info: 'bg-blue-600' };
             const toast = document.createElement('div');
             toast.className = `flex items-center ${colors[type]} text-white text-sm font-medium px-4 py-3 rounded-lg shadow transition transform translate-y-0 opacity-100`;
             toast.innerHTML = `<span>${message}</span>`;
             document.getElementById('toastContainer').appendChild(toast);
             setTimeout(() => {
                 toast.classList.add('opacity-0', '-translate-y-2');
-                setTimeout(() => toast.remove(), 300); // Remove after fade out
-            }, 3000); // Display for 3 seconds
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
         /**
-         * Displays a persistent visual error banner at the top of the page.
+         * Displays a visual error message at the top of the page.
          * @param {string} message - The error message to display.
          */
         function showVisualError(message) {
@@ -942,7 +726,7 @@
         }
 
         /**
-         * Hides the visual error banner.
+         * Hides the visual error message.
          */
         function hideVisualError() {
             if (visualError) {
@@ -952,8 +736,8 @@
 
         /**
          * Displays an inline error message next to a form field.
-         * @param {string} id - The ID of the <p> element for the error message.
-         * @param {string} message - The error message to display.
+         * @param {string} id - The ID of the error message element.
+         * @param {string} message - The error message.
          */
         function showInlineError(id, message) {
             const el = document.getElementById(id);
@@ -965,7 +749,7 @@
 
         /**
          * Hides an inline error message.
-         * @param {string} id - The ID of the <p> element for the error message.
+         * @param {string} id - The ID of the error message element.
          */
         function hideInlineError(id) {
             const el = document.getElementById(id);
@@ -974,10 +758,9 @@
             }
         }
 
-        // --- End New Error Handling Components ---
-
-
-        // Function to load local preferences from Local Storage (not data)
+        /**
+         * Loads application state from localStorage.
+         */
         function loadLocalState() {
             console.log("Loading local preferences from localStorage...");
             const data = localStorage.getItem('extendedHoursTrackerLocalState');
@@ -985,18 +768,12 @@
                 try {
                     const parsedData = JSON.parse(data);
                     if (parsedData.currentLoggedInEmployee && parsedData.currentLoggedInEmployee.id && parsedData.currentLoggedInEmployee.name && parsedData.currentLoggedInEmployee.loginTime) {
-                        currentLoggedInEmployee = {
-                            id: parsedData.currentLoggedInEmployee.id,
-                            name: parsedData.currentLoggedInEmployee.name,
-                            loginTime: new Date(parsedData.currentLoggedInEmployee.loginTime)
-                        };
+                        currentLoggedInEmployee = { id: parsedData.currentLoggedInEmployee.id, name: parsedData.currentLoggedInEmployee.name, loginTime: new Date(parsedData.currentLoggedInEmployee.loginTime) };
                         console.log("Local state: Logged in employee loaded.", currentLoggedInEmployee);
                     }
-                    isAdminMode = parsedData.isAdminMode || false; 
-                    isAdminLoggedIn = parsedData.isAdminLoggedIn || false; 
-
+                    isAdminMode = parsedData.isAdminMode || false;
+                    isAdminLoggedIn = parsedData.isAdminLoggedIn || false;
                     console.log("Local state: Admin mode?", isAdminMode, "Admin logged in?", isAdminLoggedIn);
-
                 } catch (e) {
                     console.error("Error parsing local state from localStorage:", e);
                     currentLoggedInEmployee = null;
@@ -1010,49 +787,53 @@
                 isAdminMode = false;
                 isAdminLoggedIn = false;
             }
-            updateLoginButtons(); 
-            updateAdminUI(); 
+            updateLoginButtons();
+            updateAdminUI();
         }
 
-        // Function to save local preferences to Local Storage
+        /**
+         * Saves application state to localStorage.
+         */
         function saveLocalState() {
             const dataToSave = {
-                currentLoggedInEmployee: currentLoggedInEmployee ? {
-                    id: currentLoggedInEmployee.id,
-                    name: currentLoggedInEmployee.name,
-                    loginTime: currentLoggedInEmployee.loginTime.toISOString() 
-                } : null,
-                isAdminMode: isAdminMode, 
-                isAdminLoggedIn: isAdminLoggedIn 
+                currentLoggedInEmployee: currentLoggedInEmployee ? { id: currentLoggedInEmployee.id, name: currentLoggedInEmployee.name, loginTime: currentLoggedInEmployee.loginTime.toISOString() } : null,
+                isAdminMode: isAdminMode,
+                isAdminLoggedIn: isAdminLoggedIn
             };
             localStorage.setItem('extendedHoursTrackerLocalState', JSON.stringify(dataToSave));
             console.log("Local state saved to localStorage.", dataToSave);
         }
 
-        // Function to calculate total hours between two Date objects
+        /**
+         * Calculates total hours between two date objects.
+         * @param {Date} startDateObj - The start Date object.
+         * @param {Date} endDateObj - The end Date object.
+         * @returns {string} The total hours formatted to two decimal places, or 'N/A'.
+         */
         function calculateTotalHoursFromDates(startDateObj, endDateObj) {
             if (!startDateObj || !endDateObj || !(startDateObj instanceof Date) || !(endDateObj instanceof Date)) {
                 console.error("Invalid Date objects for total hours calculation.");
                 return 'N/A';
             }
-
             const diffMs = endDateObj - startDateObj;
             if (diffMs < 0) {
                 console.warn("End date is earlier than start date for calculation. Returning 0 hours.");
                 return '0.00';
             }
-            const totalHours = diffMs / (1000 * 60 * 60); 
-            return totalHours.toFixed(2); 
+            const totalHours = diffMs / (1000 * 60 * 60);
+            return totalHours.toFixed(2);
         }
 
-        // Function to render the table with entries
+        /**
+         * Renders the extended hours entries table.
+         * @param {Array<Object>} [entriesToDisplay=extendedHoursEntries] - The array of entries to display.
+         */
         function renderTable(entriesToDisplay = extendedHoursEntries) {
-            entriesTableBody.innerHTML = ''; 
-            selectedEntryIds.clear(); 
-            if (selectAllCheckboxes) selectAllCheckboxes.checked = false; 
-
+            entriesTableBody.innerHTML = '';
+            selectedEntryIds.clear();
+            if (selectAllCheckboxes) selectAllCheckboxes.checked = false;
             const deleteColumnHeader = document.querySelector('.delete-column-header');
-            
+
             if (isAdminMode) {
                 if (deleteColumnHeader) deleteColumnHeader.classList.remove('hidden');
             } else {
@@ -1068,10 +849,10 @@
 
             entriesToDisplay.forEach((entry, index) => {
                 const row = document.createElement('tr');
-                row.className = index % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800'; /* Adjusted for new section background */
+                row.className = index % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800';
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100 ${isAdminMode ? '' : 'hidden'}">
-                        <input type="checkbox" data-id="${entry.id}" class="entry-checkbox form-checkbox h-4 w-4 text-emerald-500 transition duration-150 ease-in-out rounded" aria-label="Select entry for ${entry.memberName} on ${new Date(entry.date).toLocaleDateString('en-GB')}">
+                        <input type="checkbox" data-id="${entry.id}" class="entry-checkbox form-checkbox h-4 w-4 text-blue-500 transition duration-150 ease-in-out rounded" aria-label="Select entry for ${entry.memberName} on ${new Date(entry.date).toLocaleDateString('en-GB')}">
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">${entry.memberName}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${entry.employeeId}</td>
@@ -1083,7 +864,6 @@
                 `;
                 entriesTableBody.appendChild(row);
 
-                // Add event listener for individual checkboxes (for multi-delete)
                 const checkbox = row.querySelector('.entry-checkbox');
                 if (checkbox) {
                     checkbox.addEventListener('change', (e) => {
@@ -1096,10 +876,14 @@
                     });
                 }
             });
-            updateDeleteSelectedButtonVisibility(); 
+            updateDeleteSelectedButtonVisibility();
         }
 
-        // Function to toggle individual entry selection
+        /**
+         * Toggles the selection state of an entry.
+         * @param {string} id - The ID of the entry.
+         * @param {boolean} isChecked - The new checked state.
+         */
         function toggleEntrySelection(id, isChecked) {
             if (isChecked) {
                 selectedEntryIds.add(id);
@@ -1109,7 +893,7 @@
             updateDeleteSelectedButtonVisibility();
         }
 
-        // Event listener for "Select All" checkbox
+        // Event listener for select all checkboxes
         if (selectAllCheckboxes) {
             selectAllCheckboxes.addEventListener('change', (e) => {
                 const isChecked = e.target.checked;
@@ -1120,7 +904,9 @@
             });
         }
 
-        // Function to update the visibility of the "Delete Selected" button
+        /**
+         * Updates the visibility of the delete selected button based on selection.
+         */
         function updateDeleteSelectedButtonVisibility() {
             if (isAdminMode && selectedEntryIds.size > 0) {
                 deleteSelectedBtn.classList.remove('hidden');
@@ -1129,14 +915,13 @@
             }
         }
 
-        // Event listener for "Delete Selected Entries" button
-        if(deleteSelectedBtn) {
+        // Event listener for delete selected button
+        if (deleteSelectedBtn) {
             deleteSelectedBtn.addEventListener('click', () => {
                 if (selectedEntryIds.size === 0) {
                     showToast("No entries selected for deletion.", "info");
                     return;
                 }
-
                 showConfirmDialog(`Are you sure you want to delete ${selectedEntryIds.size} selected entries?`, async (confirmed) => {
                     if (confirmed) {
                         const idsToDelete = Array.from(selectedEntryIds);
@@ -1151,25 +936,25 @@
                                 showToast(`Failed to delete entry ${id}. Check console.`, "error");
                             }
                         }
-                        showToast(`${deletedCount} entries successfully deleted!`, "success"); // Auto-dismiss
-                        selectedEntryIds.clear(); 
+                        showToast(`${deletedCount} entries successfully deleted!`, "success");
+                        selectedEntryIds.clear();
                     } else {
-                        showToast("Deletion cancelled.", "info"); // Auto-dismiss
+                        showToast("Deletion cancelled.", "info");
                     }
                 });
             });
         }
 
-
-        // Function to update the summary section
+        /**
+         * Updates the summary section with total hours and overtime per employee.
+         * @param {Array<Object>} [entriesForSummary=extendedHoursEntries] - The array of entries for summary calculation.
+         */
         function updateSummary(entriesForSummary = extendedHoursEntries) {
             const summary = {};
             entriesForSummary.forEach(entry => {
                 const hours = parseFloat(entry.totalHours);
-                const overtime = parseFloat(entry.overtimeHours || 0); 
-
+                const overtime = parseFloat(entry.overtimeHours || 0);
                 if (!isNaN(hours)) {
-                    // Summarize total hours by employee name
                     summary[entry.memberName] = summary[entry.memberName] || { total: 0, overtime: 0 };
                     summary[entry.memberName].total += hours;
                     if (!isNaN(overtime)) {
@@ -1178,8 +963,7 @@
                 }
             });
 
-            summarySection.innerHTML = ''; 
-
+            summarySection.innerHTML = '';
             if (Object.keys(summary).length === 0) {
                 noSummaryMessage.classList.remove('hidden');
                 summarySection.appendChild(noSummaryMessage);
@@ -1188,28 +972,28 @@
                 noSummaryMessage.classList.add('hidden');
             }
 
-
             for (const member in summary) {
                 const card = document.createElement('div');
-                card.className = 'bg-gray-800 p-4 rounded-lg shadow flex flex-col items-center justify-center'; /* Adjusted for new section background */
+                card.className = 'bg-gray-800 p-4 rounded-lg shadow flex flex-col items-center justify-center';
                 card.innerHTML = `
-                    <p class="text-lg font-semibold text-emerald-300">${member}</p>
-                    <p class="text-xl text-emerald-100">Total: ${summary[member].total.toFixed(2)} hrs</p>
-                    <p class="text-xl text-emerald-100">Overtime: ${summary[member].overtime.toFixed(2)} hrs</p>
+                    <p class="text-lg font-semibold text-blue-200">${member}</p>
+                    <p class="text-xl text-gray-100">Total: ${summary[member].total.toFixed(2)} hrs</p>
+                    <p class="text-xl text-gray-100">Overtime: ${summary[member].overtime.toFixed(2)} hrs</p>
                 `;
                 summarySection.appendChild(card);
             }
         }
 
-        // Function to update the monthly overtime report section
+        /**
+         * Updates the monthly overtime report section.
+         * @param {Array<Object>} [entriesForReport=extendedHoursEntries] - The array of entries for report generation.
+         */
         function updateMonthlyOvertimeReport(entriesForReport = extendedHoursEntries) {
-            const monthlyReport = {}; 
-
+            const monthlyReport = {};
             entriesForReport.forEach(entry => {
                 const date = new Date(entry.date);
-                const yearMonth = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`; 
+                const yearMonth = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
                 const overtime = parseFloat(entry.overtimeHours || 0);
-
                 if (!isNaN(overtime) && overtime > 0) {
                     if (!monthlyReport[yearMonth]) {
                         monthlyReport[yearMonth] = {};
@@ -1218,9 +1002,8 @@
                 }
             });
 
-            monthlyOvertimeReportSection.innerHTML = ''; 
-
-            const sortedMonths = Object.keys(monthlyReport).sort().reverse(); 
+            monthlyOvertimeReportSection.innerHTML = '';
+            const sortedMonths = Object.keys(monthlyReport).sort().reverse();
 
             if (sortedMonths.length === 0) {
                 noMonthlyReportMessage.classList.remove('hidden');
@@ -1232,12 +1015,10 @@
 
             sortedMonths.forEach(yearMonth => {
                 const monthCard = document.createElement('div');
-                monthCard.className = 'bg-gray-800 p-4 rounded-lg shadow'; /* Adjusted for new section background */
-                monthCard.innerHTML = `<h4 class="text-xl font-semibold text-emerald-400 mb-2">${yearMonth} Overtime</h4>`;
-                
+                monthCard.className = 'bg-gray-800 p-4 rounded-lg shadow';
+                monthCard.innerHTML = `<h4 class="text-xl font-semibold text-blue-300 mb-2">${yearMonth} Overtime</h4>`;
                 const ul = document.createElement('ul');
-                ul.className = 'list-disc list-inside text-gray-200'; 
-
+                ul.className = 'list-disc list-inside text-gray-200';
                 const sortedEmployees = Object.keys(monthlyReport[yearMonth]).sort();
                 sortedEmployees.forEach(employeeName => {
                     const li = document.createElement('li');
@@ -1249,71 +1030,68 @@
             });
         }
 
-        // Function to populate the employee dropdown
+        /**
+         * Populates the employee dropdowns with team members.
+         */
         function populateEmployeeDropdown() {
-            if (!employeeSelect) return; // Safety check
-            if (!leaveEmployeeSelect) return; // Safety check for leave section
+            if (!employeeSelect) return;
+            if (!leaveEmployeeSelect) return;
 
-            employeeSelect.innerHTML = '<option value="">-- Select an Employee --</option>'; // Clear existing options and add default
+            employeeSelect.innerHTML = '<option value="">-- Select an Employee --</option>';
             leaveEmployeeSelect.innerHTML = '<option value="">-- Select Employee --</option>';
 
-            // Sort team members alphabetically by name
             const sortedMembers = [...predefinedTeamMembers].sort((a, b) => a.name.localeCompare(b.name));
-
             sortedMembers.forEach(member => {
                 const option = document.createElement('option');
                 option.value = member.id;
-                // Display name and ID
-                option.textContent = `${member.name} (${member.id})`; 
+                option.textContent = `${member.name} (${member.id})`;
                 employeeSelect.appendChild(option);
-                leaveEmployeeSelect.appendChild(option.cloneNode(true)); // Clone for leave section
+                leaveEmployeeSelect.appendChild(option.cloneNode(true));
             });
 
-            // If an employee is already logged in, select them in the dropdown
             if (currentLoggedInEmployee) {
                 employeeSelect.value = currentLoggedInEmployee.id;
                 leaveEmployeeSelect.value = currentLoggedInEmployee.id;
             }
         }
 
-
-        // Function to update the state of employee login/logout buttons and status message
+        /**
+         * Updates the state and text of login/logout buttons and status.
+         */
         function updateLoginButtons() {
             if (currentLoggedInEmployee) {
-                if(employeeSelect) {
-                    employeeSelect.value = currentLoggedInEmployee.id; // Select logged-in ID
+                if (employeeSelect) {
+                    employeeSelect.value = currentLoggedInEmployee.id;
                     employeeSelect.disabled = true;
                 }
-                if(loginBtn) loginBtn.disabled = true;
-                if(logoutBtn) logoutBtn.disabled = false;
+                if (loginBtn) loginBtn.disabled = true;
+                if (logoutBtn) logoutBtn.disabled = false;
                 employeeLoginStatus.textContent = `Currently logged in: ${currentLoggedInEmployee.name} (${currentLoggedInEmployee.id}) (since ${currentLoggedInEmployee.loginTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })})`;
             } else {
-                if(employeeSelect) {
-                    employeeSelect.value = ""; // Reset dropdown
+                if (employeeSelect) {
+                    employeeSelect.value = "";
                     employeeSelect.disabled = false;
                 }
-                if(loginBtn) loginBtn.disabled = false;
-                if(logoutBtn) logoutBtn.disabled = true;
+                if (loginBtn) loginBtn.disabled = false;
+                if (logoutBtn) logoutBtn.disabled = true;
                 employeeLoginStatus.textContent = 'No one is logged in.';
             }
-            updateAdminUI(); 
+            updateAdminUI();
         }
 
-        // Employee Login Button Click Handler
-        if(loginBtn) {
+        // Event listener for login button
+        if (loginBtn) {
             loginBtn.addEventListener('click', () => {
                 const selectedEmployeeId = employeeSelect ? employeeSelect.value : '';
-                
                 if (!selectedEmployeeId) {
                     showToast("Please select an Employee to login.", "error");
                     return;
                 }
-                
-                const employee = predefinedTeamMembers.find(member => member.id.toUpperCase() === selectedEmployeeId.toUpperCase());
 
+                const employee = predefinedTeamMembers.find(member => member.id.toUpperCase() === selectedEmployeeId.toUpperCase());
                 if (!employee) {
                     showToast("Invalid Employee selected. Please select a valid ID from your team.", "error");
-                    if(employeeSelect) employeeSelect.value = ''; 
+                    if (employeeSelect) employeeSelect.value = '';
                     return;
                 }
 
@@ -1322,20 +1100,15 @@
                     return;
                 }
 
-                currentLoggedInEmployee = {
-                    id: employee.id,
-                    name: employee.name,
-                    loginTime: new Date()
-                };
-                showToast(`Logged in as ${currentLoggedInEmployee.name} (${currentLoggedInEmployee.id})!`, "success"); // Auto-dismiss
-
-                saveLocalState(); 
+                currentLoggedInEmployee = { id: employee.id, name: employee.name, loginTime: new Date() };
+                showToast(`Logged in as ${currentLoggedInEmployee.name} (${currentLoggedInEmployee.id})!`, "success");
+                saveLocalState();
                 updateLoginButtons();
             });
         }
 
-        // Employee Logout Button Click Handler
-        if(logoutBtn) {
+        // Event listener for logout button
+        if (logoutBtn) {
             logoutBtn.addEventListener('click', async () => {
                 if (!currentLoggedInEmployee) {
                     showToast("No one is currently logged in.", "error");
@@ -1344,16 +1117,16 @@
 
                 const logoutTime = new Date();
                 const totalHours = parseFloat(calculateTotalHoursFromDates(currentLoggedInEmployee.loginTime, logoutTime));
-                const overtimeHours = Math.max(0, totalHours - OVERTIME_THRESHOLD_HOURS); 
+                const overtimeHours = Math.max(0, totalHours - OVERTIME_THRESHOLD_HOURS);
 
                 const newEntry = {
-                    employeeId: currentLoggedInEmployee.id, 
-                    memberName: currentLoggedInEmployee.name, 
-                    date: currentLoggedInEmployee.loginTime.toISOString().split('T')[0], 
+                    employeeId: currentLoggedInEmployee.id,
+                    memberName: currentLoggedInEmployee.name,
+                    date: currentLoggedInEmployee.loginTime.toISOString().split('T')[0],
                     startTime: currentLoggedInEmployee.loginTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
                     endTime: logoutTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
                     totalHours: totalHours,
-                    overtimeHours: overtimeHours, 
+                    overtimeHours: overtimeHours,
                 };
 
                 try {
@@ -1371,42 +1144,36 @@
                         startTime: newEntry.startTime,
                         endTime: newEntry.endTime,
                         totalHours: newEntry.totalHours,
-                        overtimeHours: newEntry.overtimeHours, 
-                        createdAt: new Date().toISOString() 
+                        overtimeHours: newEntry.overtimeHours,
+                        createdAt: new Date().toISOString()
                     });
                     console.log("Document successfully added to Firestore.");
-                    showToast(`Logged out. ${newEntry.memberName} (${newEntry.employeeId}) worked ${newEntry.totalHours.toFixed(2)} hours (Overtime: ${newEntry.overtimeHours.toFixed(2)}). Entry saved!`, "success"); // Auto-dismiss
+                    showToast(`Logged out. ${newEntry.memberName} (${newEntry.employeeId}) worked ${newEntry.totalHours.toFixed(2)} hours (Overtime: ${newEntry.overtimeHours.toFixed(2)}). Entry saved!`, "success");
                 } catch (e) {
                     console.error("Error adding document to Firestore: ", e);
                     showToast("Failed to save entry. Please check console for details and Firebase setup.", "error");
                 }
 
-                currentLoggedInEmployee = null; 
-                saveLocalState(); 
+                currentLoggedInEmployee = null;
+                saveLocalState();
                 updateLoginButtons();
             });
         }
 
-
-        // Function to export table data to CSV
-        if(exportCsvBtn) {
+        // Event listener for export CSV button
+        if (exportCsvBtn) {
             exportCsvBtn.addEventListener('click', () => {
-                if (!isAdminLoggedIn || !isAdminMode) { 
+                if (!isAdminLoggedIn || !isAdminMode) {
                     showToast("You must be logged in as an Admin and Admin Mode must be enabled to export data.", "error");
                     return;
                 }
                 if (extendedHoursEntries.length === 0) {
-                    showToast("No data to export.", "info"); // Auto-dismiss
+                    showToast("No data to export.", "info");
                     return;
                 }
 
-                const filteredEntries = filterEntriesByDate(
-                    filterStartDateInput.value ? new Date(filterStartDateInput.value) : null,
-                    filterEndDateInput.value ? new Date(filterEndDateInput.value) : null
-                );
-
-                let csvContent = "Employee Name,Employee ID,Date,Start Time,End Time,Total Hours,Overtime Hours\n"; 
-
+                const filteredEntries = filterEntriesByDate(filterStartDateInput.value ? new Date(filterStartDateInput.value) : null, filterEndDateInput.value ? new Date(filterEndDateInput.value) : null);
+                let csvContent = "Employee Name,Employee ID,Date,Start Time,End Time,Total Hours,Overtime Hours\n";
                 filteredEntries.forEach(entry => {
                     const row = [
                         entry.memberName,
@@ -1416,7 +1183,7 @@
                         entry.endTime,
                         entry.totalHours.toFixed(2),
                         entry.overtimeHours.toFixed(2),
-                    ].map(item => `"${item}"`).join(','); 
+                    ].map(item => `"${item}"`).join(',');
                     csvContent += row + "\n";
                 });
 
@@ -1427,14 +1194,14 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                showToast("Data exported to CSV!", "success"); // Auto-dismiss
+                showToast("Data exported to CSV!", "success");
             });
         }
 
-        // Function to export table data to PDF (Extended Hours)
-        if(exportPdfBtn) {
+        // Event listener for export PDF button
+        if (exportPdfBtn) {
             exportPdfBtn.addEventListener('click', async () => {
-                if (!isAdminLoggedIn || !isAdminMode) { 
+                if (!isAdminLoggedIn || !isAdminMode) {
                     showToast("You must be logged in as an Admin and Admin Mode must be enabled to export data.", "error");
                     return;
                 }
@@ -1444,33 +1211,27 @@
                     return;
                 }
 
-                showToast("Generating PDF...", "info", true, 5000); // Show message for longer duration
+                showToast("Generating PDF...", "info", true, 5000);
 
-                // Create a temporary clone of the table for PDF generation
                 const originalTable = tableContainer.querySelector('table');
                 const clonedTable = originalTable.cloneNode(true);
-                
-                // Apply inline styles to the cloned table for clean PDF rendering
-                clonedTable.style.backgroundColor = '#ffffff'; // White background for the table
-                clonedTable.style.color = '#000000'; // Black text color
-                clonedTable.style.width = '100%'; // Ensure table takes full width
-                clonedTable.style.borderCollapse = 'collapse'; // Collapse borders
-
-                // Apply styles to all cells and headers
-                clonedTable.querySelectorAll('th, td').forEach(cell => {
-                    cell.style.border = '1px solid #cccccc'; // Light gray border
+                clonedTable.style.backgroundColor = '#ffffff';
+                clonedTable.style.color = '#000000';
+                clonedTable.style.width = '100%';
+                clonedTable.style.borderCollapse = 'collapse';
+                clonedTable.querySelectorAll('th,td').forEach(cell => {
+                    cell.style.border = '1px solid #cccccc';
                     cell.style.padding = '8px';
                     cell.style.textAlign = 'left';
-                    cell.style.backgroundColor = '#ffffff'; // Ensure white background for cells
-                    cell.style.color = '#000000'; // Ensure black text color
+                    cell.style.backgroundColor = '#ffffff';
+                    cell.style.color = '#000000';
                 });
                 clonedTable.querySelectorAll('thead th').forEach(header => {
-                    header.style.backgroundColor = '#f2f2f2'; // Light gray header background
+                    header.style.backgroundColor = '#f2f2f2';
                     header.style.fontWeight = 'bold';
                 });
-
-                // Remove the checkbox column from the cloned table if it exists
-                clonedTable.querySelectorAll('.delete-column-header, .entry-checkbox').forEach(el => {
+                // Remove delete column and checkboxes from PDF export
+                clonedTable.querySelectorAll('.delete-column-header,.entry-checkbox').forEach(el => {
                     if (el.tagName === 'TH') {
                         el.remove();
                     } else if (el.tagName === 'INPUT' && el.type === 'checkbox') {
@@ -1478,8 +1239,6 @@
                     }
                 });
 
-
-                // Create a temporary div to hold the cloned table outside the viewport
                 const tempDiv = document.createElement('div');
                 tempDiv.style.position = 'absolute';
                 tempDiv.style.left = '-9999px';
@@ -1488,29 +1247,21 @@
                 document.body.appendChild(tempDiv);
 
                 try {
-                    const canvas = await html2canvas(clonedTable, {
-                        scale: 2, // Increase scale for better resolution
-                        useCORS: true, // If you have external images, enable CORS
-                        backgroundColor: '#ffffff' // Ensure white background for canvas
-                    });
-
+                    const canvas = await html2canvas(clonedTable, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
                     const imgData = canvas.toDataURL('image/png');
                     const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' for portrait, 'mm' for millimeters, 'a4' size
-
-                    const imgWidth = 190; // A4 width minus margins (210mm - 10mm left - 10mm right)
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const imgWidth = 190;
                     const pageHeight = pdf.internal.pageSize.height;
                     const imgHeight = canvas.height * imgWidth / canvas.width;
                     let heightLeft = imgHeight;
-                    let position = 10; // Initial Y position for content
+                    let position = 10;
 
-                    // Header
                     pdf.setFontSize(18);
-                    pdf.text("Employee Extended Hours Report", 105, 20, null, null, "center"); // Centered header
+                    pdf.text("Employee Extended Hours Report", 105, 20, null, null, "center");
                     pdf.setFontSize(10);
 
-                    // Add image to PDF, handling multiple pages if necessary
-                    pdf.addImage(imgData, 'PNG', 10, position + 20, imgWidth, imgHeight); // +20 to account for header
+                    pdf.addImage(imgData, 'PNG', 10, position + 20, imgWidth, imgHeight);
                     heightLeft -= pageHeight - (position + 20);
 
                     while (heightLeft > 0) {
@@ -1520,7 +1271,6 @@
                         heightLeft -= pageHeight;
                     }
 
-                    // Footer
                     const footerText = `Export Date: ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString('en-GB')}`;
                     pdf.setFontSize(8);
                     pdf.text(footerText, 10, pageHeight - 10);
@@ -1531,7 +1281,6 @@
                     console.error("Error generating PDF:", e);
                     showToast("Failed to generate PDF. Check console for details.", "error");
                 } finally {
-                    // Clean up temporary div
                     if (tempDiv.parentNode) {
                         tempDiv.parentNode.removeChild(tempDiv);
                     }
@@ -1539,10 +1288,10 @@
             });
         }
 
-        // Function to export table data to PDF (Leave Records)
-        if(exportLeavePdfBtn) {
+        // Event listener for export leave PDF button
+        if (exportLeavePdfBtn) {
             exportLeavePdfBtn.addEventListener('click', async () => {
-                if (!isAdminLoggedIn || !isAdminMode) { 
+                if (!isAdminLoggedIn || !isAdminMode) {
                     showToast("You must be logged in as an Admin and Admin Mode must be enabled to export leave data.", "error");
                     return;
                 }
@@ -1552,36 +1301,28 @@
                     return;
                 }
 
-                showToast("Generating PDF...", "info", true, 5000); // Show message for longer duration
+                showToast("Generating PDF...", "info", true, 5000);
 
-                // Create a temporary clone of the table for PDF generation
                 const originalTable = leaveTableContainer.querySelector('table');
                 const clonedTable = originalTable.cloneNode(true);
-                
-                // Apply inline styles to the cloned table for clean PDF rendering
-                clonedTable.style.backgroundColor = '#ffffff'; // White background for the table
-                clonedTable.style.color = '#000000'; // Black text color
-                clonedTable.style.width = '100%'; // Ensure table takes full width
-                clonedTable.style.borderCollapse = 'collapse'; // Collapse borders
-
-                // Apply styles to all cells and headers
-                clonedTable.querySelectorAll('th, td').forEach(cell => {
-                    cell.style.border = '1px solid #cccccc'; // Light gray border
+                clonedTable.style.backgroundColor = '#ffffff';
+                clonedTable.style.color = '#000000';
+                clonedTable.style.width = '100%';
+                clonedTable.style.borderCollapse = 'collapse';
+                clonedTable.querySelectorAll('th,td').forEach(cell => {
+                    cell.style.border = '1px solid #cccccc';
                     cell.style.padding = '8px';
                     cell.style.textAlign = 'left';
-                    cell.style.backgroundColor = '#ffffff'; // Ensure white background for cells
-                    cell.style.color = '#000000'; // Ensure black text color
+                    cell.style.backgroundColor = '#ffffff';
+                    cell.style.color = '#000000';
                 });
                 clonedTable.querySelectorAll('thead th').forEach(header => {
-                    header.style.backgroundColor = '#f2f2f2'; // Light gray header background
+                    header.style.backgroundColor = '#f2f2f2';
                     header.style.fontWeight = 'bold';
                 });
-
-                // Remove the actions column from the cloned table if it exists
+                // Remove admin action column from PDF export
                 clonedTable.querySelectorAll('.admin-action-column').forEach(el => el.remove());
 
-
-                // Create a temporary div to hold the cloned table outside the viewport
                 const tempDiv = document.createElement('div');
                 tempDiv.style.position = 'absolute';
                 tempDiv.style.left = '-9999px';
@@ -1590,29 +1331,21 @@
                 document.body.appendChild(tempDiv);
 
                 try {
-                    const canvas = await html2canvas(clonedTable, {
-                        scale: 2, // Increase scale for better resolution
-                        useCORS: true, // If you have external images, enable CORS
-                        backgroundColor: '#ffffff' // Ensure white background for canvas
-                    });
-
+                    const canvas = await html2canvas(clonedTable, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
                     const imgData = canvas.toDataURL('image/png');
                     const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' for portrait, 'mm' for millimeters, 'a4' size
-
-                    const imgWidth = 190; // A4 width minus margins (210mm - 10mm left - 10mm right)
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const imgWidth = 190;
                     const pageHeight = pdf.internal.pageSize.height;
                     const imgHeight = canvas.height * imgWidth / canvas.width;
                     let heightLeft = imgHeight;
-                    let position = 10; // Initial Y position for content
+                    let position = 10;
 
-                    // Header
                     pdf.setFontSize(18);
-                    pdf.text("Employee Leave Records Report", 105, 20, null, null, "center"); // Centered header
+                    pdf.text("Employee Leave Records Report", 105, 20, null, null, "center");
                     pdf.setFontSize(10);
 
-                    // Add image to PDF, handling multiple pages if necessary
-                    pdf.addImage(imgData, 'PNG', 10, position + 20, imgWidth, imgHeight); // +20 to account for header
+                    pdf.addImage(imgData, 'PNG', 10, position + 20, imgWidth, imgHeight);
                     heightLeft -= pageHeight - (position + 20);
 
                     while (heightLeft > 0) {
@@ -1622,7 +1355,6 @@
                         heightLeft -= pageHeight;
                     }
 
-                    // Footer
                     const footerText = `Export Date: ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString('en-GB')}`;
                     pdf.setFontSize(8);
                     pdf.text(footerText, 10, pageHeight - 10);
@@ -1633,7 +1365,6 @@
                     console.error("Error generating PDF:", e);
                     showToast("Failed to generate PDF. Check console for details.", "error");
                 } finally {
-                    // Clean up temporary div
                     if (tempDiv.parentNode) {
                         tempDiv.parentNode.removeChild(tempDiv);
                     }
@@ -1641,65 +1372,98 @@
             });
         }
 
+        /**
+         * Applies date filters to the extended hours entries and updates the display.
+         */
+        function applyFilter() {
+            const startDateStr = filterStartDateInput.value;
+            const endDateStr = filterEndDateInput.value;
 
-        // Function to filter entries by date range
+            let startDate = null;
+            let endDate = null;
+            let isValid = true;
+
+            hideInlineError('filterStartDateError');
+            hideInlineError('filterEndDateError');
+
+            if (startDateStr) {
+                startDate = new Date(startDateStr);
+                startDate.setHours(0, 0, 0, 0);
+                if (isNaN(startDate.getTime())) {
+                    showInlineError('filterStartDateError', 'Invalid start date.');
+                    isValid = false;
+                }
+            }
+
+            if (endDateStr) {
+                endDate = new Date(endDateStr);
+                endDate.setHours(0, 0, 0, 0);
+                if (isNaN(endDate.getTime())) {
+                    showInlineError('filterEndDateError', 'Invalid end date.');
+                    isValid = false;
+                }
+            }
+
+            if (isValid && startDate && endDate && startDate > endDate) {
+                showInlineError('filterEndDateError', 'End date must be after or same as start date.');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                renderTable([]); // Clear table if dates are invalid
+                updateSummary([]);
+                updateMonthlyOvertimeReport([]);
+                return;
+            }
+
+            const filteredEntries = filterEntriesByDate(startDate, endDate);
+            renderTable(filteredEntries);
+            updateSummary(filteredEntries);
+            updateMonthlyOvertimeReport(filteredEntries);
+            showToast("Entries filtered successfully!", "success");
+        }
+
+        /**
+         * Filters extended hours entries by a given date range.
+         * @param {Date|null} startDate - The start date for filtering.
+         * @param {Date|null} endDate - The end date for filtering.
+         * @returns {Array<Object>} The filtered array of entries.
+         */
         function filterEntriesByDate(startDate, endDate) {
             return extendedHoursEntries.filter(entry => {
                 const entryDate = new Date(entry.date);
-                entryDate.setHours(0, 0, 0, 0); 
-
+                entryDate.setHours(0, 0, 0, 0);
                 const startMatch = !startDate || entryDate >= startDate;
-                const endMatch = !endDate || entryDate >= endDate; 
+                const endMatch = !endDate || entryDate <= endDate;
                 return startMatch && endMatch;
             });
         }
 
-        // Function to apply filter
-        function applyFilter() {
-            hideInlineError('filterStartDateError');
-            hideInlineError('filterEndDateError');
-
-            const startDate = filterStartDateInput.value ? new Date(filterStartDateInput.value) : null;
-            const endDate = filterEndDateInput.value ? new Date(filterEndDateInput.value) : null;
-
-            if (startDate) startDate.setHours(0, 0, 0, 0);
-            if (endDate) endDate.setHours(23, 59, 59, 999); 
-
-            if (startDate && endDate && startDate > endDate) {
-                showInlineError('filterEndDateError', "To Date cannot be before From Date.");
-                return;
-            }
-
-            const filtered = filterEntriesByDate(startDate, endDate);
-            renderTable(filtered);
-            updateSummary(filtered);
-            updateMonthlyOvertimeReport(filtered); 
-        }
-
         // Event listeners for filter buttons
-        if (applyFilterBtn) { 
+        if (applyFilterBtn) {
             applyFilterBtn.addEventListener('click', applyFilter);
         }
-        if (clearFilterBtn) { 
+
+        if (clearFilterBtn) {
             clearFilterBtn.addEventListener('click', () => {
-                if(filterStartDateInput) filterStartDateInput.value = '';
-                if(filterEndDateInput) filterEndDateInput.value = '';
+                if (filterStartDateInput) filterStartDateInput.value = '';
+                if (filterEndDateInput) filterEndDateInput.value = '';
                 hideInlineError('filterStartDateError');
                 hideInlineError('filterEndDateError');
-                applyFilter(); 
-                showToast("Filter cleared!", "info"); // Auto-dismiss
+                applyFilter();
+                showToast("Filter cleared!", "info");
             });
         }
 
-        // Admin Login Button Click Handler
-        if(adminLoginBtn) {
+        // Event listener for admin login button
+        if (adminLoginBtn) {
             adminLoginBtn.addEventListener('click', async () => {
                 const enteredPin = adminPinInput.value.trim();
-                hideInlineError('adminPinError'); // Hide previous error
+                hideInlineError('adminPinError');
 
-                if (enteredPin === storedAdminPin) { // Use storedAdminPin for validation
+                if (enteredPin === storedAdminPin) {
                     isAdminLoggedIn = true;
-                    isAdminMode = true; 
+                    isAdminMode = true;
                     adminStatus.textContent = `Admin logged in successfully. Admin Mode Enabled.`;
                     showToast("Admin login successful! Admin Mode activated.", "success");
                 } else {
@@ -1709,74 +1473,70 @@
                     showInlineError('adminPinError', "Invalid PIN entered.");
                 }
                 saveLocalState();
-                updateAdminUI(); 
-                renderTable(); 
-                updateDashboardMetrics(); // Update dashboard on admin login
+                updateAdminUI();
+                renderTable(); // Re-render table to show/hide admin columns
+                updateDashboardMetrics();
             });
         }
 
-        // Admin PIN input change listener to hide error
+        // Event listener for admin PIN input
         if (adminPinInput) {
             adminPinInput.addEventListener('input', () => {
                 hideInlineError('adminPinError');
             });
         }
 
-        // Admin Logout Button Click Handler
-        if(adminLogoutBtn) {
+        // Event listener for admin logout button
+        if (adminLogoutBtn) {
             adminLogoutBtn.addEventListener('click', async () => {
-                // No Firebase signOut needed for PIN-based auth
                 isAdminLoggedIn = false;
-                isAdminMode = false; 
-                if(adminPinInput) adminPinInput.value = '';
+                isAdminMode = false;
+                if (adminPinInput) adminPinInput.value = '';
                 adminStatus.textContent = "Admin logged out.";
-                showToast("Admin logged out.", "info"); // Auto-dismiss
+                showToast("Admin logged out.", "info");
                 saveLocalState();
-                updateAdminUI(); 
-                renderTable(); 
-                updateDashboardMetrics(); // Update dashboard on admin logout
+                updateAdminUI();
+                renderTable(); // Re-render table to hide admin columns
+                updateDashboardMetrics();
             });
         }
 
-        // Toggle Admin Mode Button Click Handler
-        if(toggleAdminModeBtn) {
+        // Event listener for toggle admin mode button
+        if (toggleAdminModeBtn) {
             toggleAdminModeBtn.addEventListener('click', () => {
-                if (isAdminLoggedIn) { 
+                if (isAdminLoggedIn) {
                     isAdminMode = !isAdminMode;
                     saveLocalState();
                     updateAdminUI();
-                    renderTable(); 
-                    showToast(`Admin Mode: ${isAdminMode ? 'Enabled' : 'Disabled'}`, "info"); // Auto-dismiss
-                    updateDashboardMetrics(); // Update dashboard on admin mode toggle
+                    renderTable(); // Re-render table to reflect admin mode changes
+                    showToast(`Admin Mode: ${isAdminMode ? 'Enabled' : 'Disabled'}`, "info");
+                    updateDashboardMetrics();
                 } else {
                     showToast("You must be logged in as an Admin to toggle Admin Mode.", "error");
                 }
             });
         }
 
-        // Function to open Admin Settings Modal
-        if(adminSettingsBtn) {
+        // Event listener for admin settings button
+        if (adminSettingsBtn) {
             adminSettingsBtn.addEventListener('click', () => {
                 if (isAdminLoggedIn && isAdminMode) {
-                    renderManageEmployeesTable(); 
-                    if(adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.remove('hidden');
-                    // Clear PIN change form errors when opening
+                    renderManageEmployeesTable();
+                    if (adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.remove('hidden');
+                    // Clear previous errors and inputs
                     hideInlineError('oldPinError');
                     hideInlineError('newPinError');
                     hideInlineError('confirmNewPinError');
                     oldPinInput.value = '';
                     newPinInput.value = '';
                     confirmNewPinInput.value = '';
-
-                    // Clear new employee form errors when opening
                     hideInlineError('newEmployeeIdError');
                     hideInlineError('newEmployeeNameError');
                     newEmployeeIdInput.value = '';
                     newEmployeeNameInput.value = '';
 
                     cleanupAdminSettingsModal = setupModalAccessibility(adminSettingsModalBackdrop, () => {
-                        // Custom close logic for admin settings modal
-                        if(adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.add('hidden');
+                        if (adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.add('hidden');
                         if (cleanupAdminSettingsModal) cleanupAdminSettingsModal();
                         cleanupAdminSettingsModal = null;
                     });
@@ -1786,34 +1546,36 @@
             });
         }
 
-        // Function to close Admin Settings Modal (global function for onclick)
-        window.closeAdminSettings = function() {
-            if(adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.add('hidden');
+        /**
+         * Closes the admin settings modal.
+         */
+        window.closeAdminSettings = function () {
+            if (adminSettingsModalBackdrop) adminSettingsModalBackdrop.classList.add('hidden');
             if (cleanupAdminSettingsModal) {
                 cleanupAdminSettingsModal();
                 cleanupAdminSettingsModal = null;
             }
         };
-        // Event listener for close button in the modal footer
-        if(closeAdminSettingsBtn) {
+
+        // Event listener for close admin settings button
+        if (closeAdminSettingsBtn) {
             closeAdminSettingsBtn.addEventListener('click', window.closeAdminSettings);
         }
 
-        // --- New Functions for Managing Team Members ---
-
-        // Function to render the table of employees in the Admin Settings modal
+        /**
+         * Renders the table for managing employees in the admin settings.
+         */
         function renderManageEmployeesTable() {
-            if(manageEmployeesTableBody) manageEmployeesTableBody.innerHTML = ''; 
+            if (manageEmployeesTableBody) manageEmployeesTableBody.innerHTML = '';
             if (predefinedTeamMembers.length === 0) {
                 const noDataRow = document.createElement('tr');
                 noDataRow.innerHTML = `<td colspan="3" class="px-6 py-4 text-center text-gray-400">No employees added yet.</td>`;
-                if(manageEmployeesTableBody) manageEmployeesTableBody.appendChild(noDataRow);
+                if (manageEmployeesTableBody) manageEmployeesTableBody.appendChild(noDataRow);
                 return;
             }
-
             predefinedTeamMembers.forEach(member => {
                 const row = document.createElement('tr');
-                row.className = 'bg-gray-800'; 
+                row.className = 'bg-gray-800';
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">${member.id}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${member.name}</td>
@@ -1822,7 +1584,7 @@
                         <button data-id="${member.docId}" class="delete-employee-btn text-red-500 hover:text-red-400 font-semibold" aria-label="Delete employee ${member.name}">Delete</button>
                     </td>
                 `;
-                if(manageEmployeesTableBody) manageEmployeesTableBody.appendChild(row);
+                if (manageEmployeesTableBody) manageEmployeesTableBody.appendChild(row);
             });
 
             document.querySelectorAll('.edit-employee-btn').forEach(button => {
@@ -1833,13 +1595,11 @@
             });
         }
 
-        // Handle Add Employee
-        if(addEmployeeBtn) {
+        // Event listener for add employee button
+        if (addEmployeeBtn) {
             addEmployeeBtn.addEventListener('click', async () => {
                 const id = newEmployeeIdInput.value.trim().toUpperCase();
                 const name = newEmployeeNameInput.value.trim();
-
-                // Clear previous errors
                 hideInlineError('newEmployeeIdError');
                 hideInlineError('newEmployeeNameError');
 
@@ -1851,7 +1611,6 @@
                     showInlineError("newEmployeeNameError", "Employee Name cannot be empty.");
                     return;
                 }
-
                 if (predefinedTeamMembers.some(member => member.id.toUpperCase() === id)) {
                     showInlineError("newEmployeeIdError", `Employee ID '${id}' already exists.`);
                     return;
@@ -1859,14 +1618,10 @@
 
                 try {
                     const teamMembersCollectionRef = collection(db, `artifacts/${appId}/public/data/teamMembers`);
-                    await addDoc(teamMembersCollectionRef, {
-                        id: id,
-                        name: name,
-                        createdAt: new Date().toISOString()
-                    });
-                    showToast("Employee added successfully!", "success"); // Auto-dismiss
-                    if(newEmployeeIdInput) newEmployeeIdInput.value = '';
-                    if(newEmployeeNameInput) newEmployeeNameInput.value = '';
+                    await addDoc(teamMembersCollectionRef, { id: id, name: name, createdAt: new Date().toISOString() });
+                    showToast("Employee added successfully!", "success");
+                    if (newEmployeeIdInput) newEmployeeIdInput.value = '';
+                    if (newEmployeeNameInput) newEmployeeNameInput.value = '';
                 } catch (e) {
                     console.error("Error adding employee:", e);
                     showToast("Failed to add employee. Check console.", "error");
@@ -1874,15 +1629,19 @@
             });
         }
 
-        // Listen for input changes to hide inline errors for new employee form
+        // Event listeners for new employee input fields
         if (newEmployeeIdInput) {
             newEmployeeIdInput.addEventListener('input', () => hideInlineError('newEmployeeIdError'));
         }
+
         if (newEmployeeNameInput) {
             newEmployeeNameInput.addEventListener('input', () => hideInlineError('newEmployeeNameError'));
         }
 
-        // Function to trigger the confirmation modal for editing an employee
+        /**
+         * Handles the edit employee button click, showing a confirmation modal.
+         * @param {Event} event - The click event.
+         */
         function handleEditEmployee(event) {
             currentEditEmployeeDocId = event.target.dataset.docId;
             currentEditEmployeeId = event.target.dataset.employeeId;
@@ -1898,7 +1657,7 @@
             }
         }
 
-        // Event listener for "Yes" on the confirmation modal
+        // Event listener for confirm edit 'Yes' button
         if (confirmEditYes) {
             confirmEditYes.addEventListener('click', () => {
                 if (confirmEditModal) confirmEditModal.classList.add('hidden');
@@ -1911,10 +1670,8 @@
                     editEmployeeID.value = currentEditEmployeeId;
                     editEmployeeName.value = currentEditEmployeeName;
                     editFormModal.classList.remove('hidden');
-                    // Clear any previous inline errors in the edit form
                     hideInlineError('editEmployeeIDError');
                     hideInlineError('editEmployeeNameError');
-
                     cleanupEditFormModal = setupModalAccessibility(editFormModal, () => {
                         editFormModal.classList.add('hidden');
                         if (cleanupEditFormModal) cleanupEditFormModal();
@@ -1924,7 +1681,7 @@
             });
         }
 
-        // Event listener for "Cancel" on the confirmation modal
+        // Event listener for confirm edit 'No' button
         if (confirmEditNo) {
             confirmEditNo.addEventListener('click', () => {
                 if (confirmEditModal) confirmEditModal.classList.add('hidden');
@@ -1936,7 +1693,7 @@
             });
         }
 
-        // Event listener for "Cancel" on the edit form modal
+        // Event listener for cancel edit button
         if (cancelEditBtn) {
             cancelEditBtn.addEventListener('click', () => {
                 if (editFormModal) editFormModal.classList.add('hidden');
@@ -1948,13 +1705,11 @@
             });
         }
 
-        // Event listener for "Save" on the edit form modal
+        // Event listener for save edit button
         if (saveEditBtn) {
             saveEditBtn.addEventListener('click', async () => {
                 const newId = editEmployeeID.value.trim().toUpperCase();
                 const newName = editEmployeeName.value.trim();
-
-                // Clear previous errors
                 hideInlineError('editEmployeeIDError');
                 hideInlineError('editEmployeeNameError');
 
@@ -1966,14 +1721,10 @@
                     showInlineError('editEmployeeNameError', "Employee Name cannot be empty.");
                     return;
                 }
-
-                // Check for duplicate ID only if the ID has changed
                 if (newId !== currentEditEmployeeId && predefinedTeamMembers.some(member => member.id.toUpperCase() === newId)) {
                     showInlineError('editEmployeeIDError', `New Employee ID '${newId}' already exists.`);
                     return;
                 }
-
-                // If no changes were made
                 if (newId === currentEditEmployeeId && newName === currentEditEmployeeName) {
                     showToast("No changes detected.", "info");
                     if (editFormModal) editFormModal.classList.add('hidden');
@@ -1986,10 +1737,7 @@
 
                 try {
                     const employeeDocRef = doc(db, `artifacts/${appId}/public/data/teamMembers`, currentEditEmployeeDocId);
-                    await updateDoc(employeeDocRef, {
-                        id: newId,
-                        name: newName
-                    });
+                    await updateDoc(employeeDocRef, { id: newId, name: newName });
                     showToast(`Employee updated successfully!`, "success");
                     if (editFormModal) editFormModal.classList.add('hidden');
                     if (cleanupEditFormModal) {
@@ -2003,12 +1751,14 @@
             });
         }
 
-        // Listen for input changes to hide inline errors for edit employee form
+        // Event listeners for edit employee input fields
         if (editEmployeeID) editEmployeeID.addEventListener('input', () => hideInlineError('editEmployeeIDError'));
         if (editEmployeeName) editEmployeeName.addEventListener('input', () => hideInlineError('editEmployeeNameError'));
 
-
-        // Handle Delete Employee
+        /**
+         * Handles the delete employee button click.
+         * @param {Event} event - The click event.
+         */
         function handleDeleteEmployee(event) {
             const docId = event.target.dataset.id;
             const employeeName = predefinedTeamMembers.find(member => member.docId === docId)?.name || 'this employee';
@@ -2019,8 +1769,7 @@
                         const employeeDocRef = doc(db, `artifacts/${appId}/public/data/teamMembers`, docId);
                         await deleteDoc(employeeDocRef);
                         showToast(`${employeeName} deleted successfully!`, "success");
-                    }
-                    catch (e) {
+                    } catch (e) {
                         console.error("Error deleting employee:", e);
                         showToast("Failed to delete employee. Check console.", "error");
                     }
@@ -2030,14 +1779,12 @@
             });
         }
 
-        // Handle Update PIN Button Click
+        // Event listener for update PIN button
         if (updatePinBtn) {
             updatePinBtn.addEventListener('click', async () => {
                 const oldPin = oldPinInput.value.trim();
                 const newPin = newPinInput.value.trim();
                 const confirmNewPin = confirmNewPinInput.value.trim();
-
-                // Clear previous errors
                 hideInlineError('oldPinError');
                 hideInlineError('newPinError');
                 hideInlineError('confirmNewPinError');
@@ -2049,19 +1796,16 @@
                     showToast("All PIN fields are required.", "error");
                     return;
                 }
-
                 if (oldPin !== storedAdminPin) {
                     showInlineError("oldPinError", "Old PIN is incorrect.");
                     showToast("Old PIN is incorrect.", "error");
                     return;
                 }
-
-                if (newPin.length < 4) { // Example: enforce minimum length
+                if (newPin.length < 4) {
                     showInlineError("newPinError", "New PIN must be at least 4 characters long.");
                     showToast("New PIN must be at least 4 characters long.", "error");
                     return;
                 }
-
                 if (newPin !== confirmNewPin) {
                     showInlineError("confirmNewPinError", "New PIN fields do not match.");
                     showToast("New PIN fields do not match.", "error");
@@ -2071,9 +1815,8 @@
                 try {
                     const adminConfigRef = doc(db, `artifacts/${appId}/public/data/settings`, 'adminConfig');
                     await setDoc(adminConfigRef, { adminPin: newPin }, { merge: true });
-                    storedAdminPin = newPin; // Update in-memory PIN
+                    storedAdminPin = newPin;
                     showToast("PIN updated successfully. Next login will use the new PIN.", "success");
-                    // Clear fields
                     oldPinInput.value = '';
                     newPinInput.value = '';
                     confirmNewPinInput.value = '';
@@ -2084,41 +1827,43 @@
             });
         }
 
-        // Listen for input changes to hide inline errors for PIN change form
+        // Event listeners for PIN input fields
         if (oldPinInput) oldPinInput.addEventListener('input', () => hideInlineError('oldPinError'));
         if (newPinInput) newPinInput.addEventListener('input', () => hideInlineError('newPinError'));
         if (confirmNewPinInput) confirmNewPinInput.addEventListener('input', () => hideInlineError('confirmNewPinError'));
 
-
-        // Update Admin UI (buttons, sections visibility)
+        /**
+         * Updates the visibility and state of admin-related UI elements.
+         */
         function updateAdminUI() {
-            // Admin Access Section visibility
+            // Admin login/logout button states
             if (isAdminLoggedIn) {
-                if(adminPinInput) adminPinInput.disabled = true;
-                if(adminLoginBtn) adminLoginBtn.disabled = true;
-                if(adminLogoutBtn) adminLogoutBtn.disabled = false;
+                if (adminPinInput) adminPinInput.disabled = true;
+                if (adminLoginBtn) adminLoginBtn.disabled = true;
+                if (adminLogoutBtn) adminLogoutBtn.disabled = false;
             } else {
-                if(adminPinInput) adminPinInput.disabled = false;
-                if(adminLoginBtn) adminLoginBtn.disabled = false;
-                if(adminLogoutBtn) adminLogoutBtn.disabled = true;
+                if (adminPinInput) adminPinInput.disabled = false;
+                if (adminLoginBtn) adminLoginBtn.disabled = false;
+                if (adminLogoutBtn) adminLogoutBtn.disabled = true;
             }
 
-            // Admin-specific control buttons visibility
+            // Admin mode specific UI elements
             if (isAdminLoggedIn) {
-                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.remove('hidden');
-                if(adminSettingsBtn) adminSettingsBtn.classList.remove('hidden');
-                if(toggleAdminModeBtn) toggleAdminModeBtn.textContent = isAdminMode ? 'Disable Admin Mode' : 'Enable Admin Mode';
-                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('bg-yellow-600', !isAdminMode);
-                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('hover:bg-yellow-700', !isAdminMode);
-                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('focus:ring-yellow-500', !isAdminMode);
-                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('bg-gray-600', isAdminMode); 
-                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('hover:bg-gray-700', isAdminMode);
-                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('focus:ring-gray-500', isAdminMode);
+                if (toggleAdminModeBtn) toggleAdminModeBtn.classList.remove('hidden');
+                if (adminSettingsBtn) adminSettingsBtn.classList.remove('hidden');
+
+                if (toggleAdminModeBtn) toggleAdminModeBtn.textContent = isAdminMode ? 'Disable Admin Mode' : 'Enable Admin Mode';
+                if (toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('bg-blue-500', !isAdminMode);
+                if (toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('hover:bg-blue-600', !isAdminMode);
+                if (toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('focus:ring-blue-400', !isAdminMode);
+                if (toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('bg-gray-600', isAdminMode);
+                if (toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('hover:bg-gray-700', isAdminMode);
+                if (toggleAdminModeBtn) toggleAdminModeBtn.classList.toggle('focus:ring-gray-500', isAdminMode);
 
                 if (exportCsvBtn) {
-                   exportCsvBtn.classList.toggle('hidden', !isAdminMode);
+                    exportCsvBtn.classList.toggle('hidden', !isAdminMode);
                 }
-                if (exportPdfBtn) { // Control visibility of new PDF button
+                if (exportPdfBtn) {
                     exportPdfBtn.classList.toggle('hidden', !isAdminMode);
                 }
                 if (deleteSelectedBtn) {
@@ -2128,68 +1873,57 @@
                 if (deleteColumnHeader) {
                     deleteColumnHeader.classList.toggle('hidden', !isAdminMode);
                 }
-                if(filterEntriesSection) filterEntriesSection.classList.toggle('hidden', !isAdminMode);
-                if(exportLeaveCsvBtn) exportLeaveCsvBtn.classList.toggle('hidden', !isAdminMode);
-                if(exportLeavePdfBtn) exportLeavePdfBtn.classList.toggle('hidden', !isAdminMode); // Control visibility of new Leave PDF button
+                if (filterEntriesSection) filterEntriesSection.classList.toggle('hidden', !isAdminMode);
+                if (exportLeaveCsvBtn) exportLeaveCsvBtn.classList.toggle('hidden', !isAdminMode);
+                if (exportLeavePdfBtn) exportLeavePdfBtn.classList.toggle('hidden', !isAdminMode);
+                if (dashboardOverviewSection) dashboardOverviewSection.classList.toggle('hidden', !isAdminMode);
 
-                // Dashboard section visibility
-                if(dashboardOverviewSection) dashboardOverviewSection.classList.toggle('hidden', !isAdminMode);
-
-
-                // Admin actions for leave requests
                 document.querySelectorAll('.admin-action-column').forEach(el => el.classList.remove('hidden'));
-                // The leave-admin-actions class is not currently used in the HTML, but keeping this for future proofing
                 document.querySelectorAll('.leave-admin-actions').forEach(el => el.classList.remove('hidden'));
 
-                // Enable/disable leave date inputs based on admin mode
                 if (leaveStartDateInput && leaveEndDateInput) {
                     leaveStartDateInput.readOnly = false;
                     leaveEndDateInput.readOnly = false;
                 }
-
             } else {
-                if(toggleAdminModeBtn) toggleAdminModeBtn.classList.add('hidden');
-                if(adminSettingsBtn) adminSettingsBtn.classList.add('hidden');
-                isAdminMode = false; 
+                // Hide admin specific elements if not logged in as admin
+                if (toggleAdminModeBtn) toggleAdminModeBtn.classList.add('hidden');
+                if (adminSettingsBtn) adminSettingsBtn.classList.add('hidden');
+                isAdminMode = false; // Ensure admin mode is off if not logged in
                 if (exportCsvBtn) {
-                   exportCsvBtn.classList.add('hidden');
+                    exportCsvBtn.classList.add('hidden');
                 }
-                if (exportPdfBtn) { // Hide PDF button
+                if (exportPdfBtn) {
                     exportPdfBtn.classList.add('hidden');
                 }
                 if (deleteSelectedBtn) {
                     deleteSelectedBtn.classList.add('hidden');
                 }
                 if (selectAllCheckboxes) {
-                    selectAllCheckboxes.checked = false; 
+                    selectAllCheckboxes.checked = false;
                     const deleteColumnHeader = document.querySelector('.delete-column-header');
                     if (deleteColumnHeader) deleteColumnHeader.classList.add('hidden');
                 }
-                if(filterEntriesSection) filterEntriesSection.classList.add('hidden');
-                if(exportLeaveCsvBtn) exportLeaveCsvBtn.classList.add('hidden');
-                if(exportLeavePdfBtn) exportLeavePdfBtn.classList.add('hidden'); // Hide Leave PDF button
+                if (filterEntriesSection) filterEntriesSection.classList.add('hidden');
+                if (exportLeaveCsvBtn) exportLeaveCsvBtn.classList.add('hidden');
+                if (exportLeavePdfBtn) exportLeavePdfBtn.classList.add('hidden');
+                if (dashboardOverviewSection) dashboardOverviewSection.classList.add('hidden');
 
-                // Dashboard section visibility
-                if(dashboardOverviewSection) dashboardOverviewSection.classList.add('hidden');
-
-
-                // Hide admin actions for leave requests
                 document.querySelectorAll('.admin-action-column').forEach(el => el.classList.add('hidden'));
-                // The leave-admin-actions class is not currently used in the HTML, but keeping this for future proofing
                 document.querySelectorAll('.leave-admin-actions').forEach(el => el.classList.add('hidden'));
 
-                // Disable past dates for employees in leave form
+                // Reset leave date inputs for non-admin users
                 if (leaveStartDateInput && leaveEndDateInput) {
                     const today = new Date().toISOString().split('T')[0];
                     leaveStartDateInput.setAttribute('min', today);
                     leaveEndDateInput.setAttribute('min', today);
-                    // No longer setting readOnly, just min attribute for future dates
                 }
             }
         }
 
-
-        // Function to seed predefined team members into Firestore if the collection is empty
+        /**
+         * Seeds the team members collection in Firestore if it's empty.
+         */
         async function seedTeamMembersIfEmpty() {
             if (!db) {
                 console.warn("Firestore instance not available for seeding.");
@@ -2201,23 +1935,16 @@
                 if (snapshot.empty) {
                     console.log("Team members collection is empty. Seeding with predefined members...");
                     for (const member of predefinedTeamMembers) {
-                        // Check if member already exists to prevent duplicates if seeding runs multiple times
-                        // This is a simple check, a more robust solution might involve a transaction or checking by ID.
                         const existingMemberQuery = query(teamMembersCollectionRef, where("id", "==", member.id));
                         const existingMemberSnapshot = await getDocs(existingMemberQuery);
-
                         if (existingMemberSnapshot.empty) {
-                            await addDoc(teamMembersCollectionRef, {
-                                id: member.id,
-                                name: member.name,
-                                createdAt: new Date().toISOString()
-                            });
+                            await addDoc(teamMembersCollectionRef, { id: member.id, name: member.name, createdAt: new Date().toISOString() });
                             console.log(`Seeded employee: ${member.name} (${member.id})`);
                         } else {
                             console.log(`Employee ${member.name} (${member.id}) already exists, skipping seeding.`);
                         }
                     }
-                    showToast("Predefined team members added to database!", "success"); // Auto-dismiss
+                    showToast("Predefined team members added to database!", "success");
                 } else {
                     console.log("Team members collection is not empty. Skipping seeding.");
                 }
@@ -2227,24 +1954,28 @@
             }
         }
 
-        // --- Leave Management Functions ---
-
-        // Helper to calculate days between two dates (inclusive)
+        /**
+         * Calculates the number of days between two dates (inclusive).
+         * @param {string} startDate - The start date string (YYYY-MM-DD).
+         * @param {string} endDate - The end date string (YYYY-MM-DD).
+         * @returns {number} The number of days, or 0 if dates are invalid.
+         */
         function calculateLeaveDays(startDate, endDate) {
             const start = new Date(startDate);
             const end = new Date(endDate);
             if (start > end) return 0;
             const diffTime = Math.abs(end - start);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 for inclusive
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
             return diffDays;
         }
 
-        // Function to render leave requests table
+        /**
+         * Renders the leave requests table.
+         */
         function renderLeaveRequestsTable() {
             if (!leaveRequestsTableBody) return;
             leaveRequestsTableBody.innerHTML = '';
 
-            // Get the header for the actions column
             const adminActionColumnHeader = document.querySelector('.admin-action-column');
             if (adminActionColumnHeader) {
                 if (isAdminMode) {
@@ -2253,7 +1984,6 @@
                     adminActionColumnHeader.classList.add('hidden');
                 }
             }
-
 
             if (leaveRecords.length === 0) {
                 const noDataRow = document.createElement('tr');
@@ -2264,8 +1994,7 @@
 
             leaveRecords.forEach((record, index) => {
                 const row = document.createElement('tr');
-                row.className = index % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800'; 
-
+                row.className = index % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800';
                 let statusColorClass = 'text-gray-300';
                 if (record.status === 'Approved') {
                     statusColorClass = 'text-green-400';
@@ -2303,17 +2032,17 @@
             document.querySelectorAll('.delete-leave-btn').forEach(button => {
                 button.addEventListener('click', handleDeleteLeave);
             });
-            updateAdminUI(); // Ensure admin actions column visibility is correct
+            updateAdminUI();
         }
 
-        // Function to update leave balance display
+        /**
+         * Updates the display of leave balances per employee.
+         */
         function updateLeaveBalancesDisplay() {
             if (!leaveBalanceSummary) return;
             leaveBalanceSummary.innerHTML = '';
 
-            // Check if there's any leave data to display
             const hasLeaveData = Object.values(leaveBalances).some(balance => balance.totalLeaveTaken > 0);
-
             if (Object.keys(leaveBalances).length === 0 || !hasLeaveData) {
                 noLeaveBalanceMessage.classList.remove('hidden');
                 leaveBalanceSummary.appendChild(noLeaveBalanceMessage);
@@ -2322,17 +2051,14 @@
                 noLeaveBalanceMessage.classList.add('hidden');
             }
 
-            // Display total leave taken for each employee from the global leaveBalances
             for (const employeeId in leaveBalances) {
                 const employeeName = predefinedTeamMembers.find(m => m.id === employeeId)?.name || employeeId;
                 const totalDays = leaveBalances[employeeId].totalLeaveTaken;
-                
-                // Only display if there's actual leave taken
-                if (totalDays > 0) {
+
+                if (totalDays > 0) { // Only show employees with some leave taken
                     const card = document.createElement('div');
                     card.className = 'bg-gray-800 p-4 rounded-lg shadow';
                     card.innerHTML = `<h5 class="text-lg font-semibold text-blue-300 mb-2">${employeeName} (${employeeId})</h5>`;
-                    
                     const ul = document.createElement('ul');
                     ul.className = 'list-disc list-inside text-gray-200 text-sm';
                     ul.innerHTML += `<li>Total Leave Taken: ${totalDays} days</li>`;
@@ -2342,15 +2068,14 @@
             }
         }
 
-        // Handle Request Leave Button Click
-        if(requestLeaveBtn) {
+        // Event listener for request leave button
+        if (requestLeaveBtn) {
             requestLeaveBtn.addEventListener('click', async () => {
                 const employeeId = leaveEmployeeSelect.value;
                 const leaveType = leaveTypeSelect.value;
                 const startDate = leaveStartDateInput.value;
                 const endDate = leaveEndDateInput.value;
 
-                // Clear previous errors
                 hideInlineError('leaveEmployeeSelectError');
                 hideInlineError('leaveTypeSelectError');
                 hideInlineError('leaveStartDateError');
@@ -2394,11 +2119,11 @@
                         startDate: startDate,
                         endDate: endDate,
                         daysRequested: daysRequested,
-                        status: 'Pending', // Default status
+                        status: 'Pending', // Initial status
                         requestedAt: new Date().toISOString()
                     });
-                    showToast("Leave request submitted successfully!", "success"); // Auto-dismiss
-                    // Clear form
+                    showToast("Leave request submitted successfully!", "success");
+                    // Clear form fields
                     leaveEmployeeSelect.value = '';
                     leaveTypeSelect.value = '';
                     leaveStartDateInput.value = '';
@@ -2410,14 +2135,16 @@
             });
         }
 
-        // Listen for input changes to hide inline errors for leave request form
+        // Event listeners for leave request input fields
         if (leaveEmployeeSelect) leaveEmployeeSelect.addEventListener('change', () => hideInlineError('leaveEmployeeSelectError'));
         if (leaveTypeSelect) leaveTypeSelect.addEventListener('change', () => hideInlineError('leaveTypeSelectError'));
         if (leaveStartDateInput) leaveStartDateInput.addEventListener('input', () => hideInlineError('leaveStartDateError'));
         if (leaveEndDateInput) leaveEndDateInput.addEventListener('input', () => hideInlineError('leaveEndDateError'));
 
-
-        // Handle Approve Leave
+        /**
+         * Handles approving a leave request.
+         * @param {Event} event - The click event.
+         */
         async function handleApproveLeave(event) {
             const docId = event.target.dataset.id;
             showConfirmDialog("Are you sure you want to APPROVE this leave request?", async (confirmed) => {
@@ -2425,14 +2152,13 @@
                     try {
                         const leaveDocRef = doc(db, `artifacts/${appId}/public/data/leaveRecords`, docId);
                         const leaveRecord = leaveRecords.find(rec => rec.id === docId);
-
                         if (leaveRecord && leaveRecord.status === 'Pending') {
                             await updateDoc(leaveDocRef, {
                                 status: 'Approved',
-                                approvedBy: 'Admin', // Use a generic 'Admin' string for PIN-based auth
+                                approvedBy: 'Admin', // Placeholder for admin user
                                 approvedAt: new Date().toISOString()
                             });
-                            showToast("Leave request approved!", "success"); // Auto-dismiss
+                            showToast("Leave request approved!", "success");
                         } else {
                             showToast("Cannot approve a non-pending leave request.", "error");
                         }
@@ -2446,7 +2172,10 @@
             });
         }
 
-        // Handle Reject Leave
+        /**
+         * Handles rejecting a leave request.
+         * @param {Event} event - The click event.
+         */
         async function handleRejectLeave(event) {
             const docId = event.target.dataset.id;
             showConfirmDialog("Are you sure you want to REJECT this leave request?", async (confirmed) => {
@@ -2455,10 +2184,10 @@
                         const leaveDocRef = doc(db, `artifacts/${appId}/public/data/leaveRecords`, docId);
                         await updateDoc(leaveDocRef, {
                             status: 'Rejected',
-                            approvedBy: 'Admin', // Use a generic 'Admin' string for PIN-based auth
+                            approvedBy: 'Admin', // Placeholder for admin user
                             approvedAt: new Date().toISOString()
                         });
-                        showToast("Leave request rejected!", "success"); // Auto-dismiss
+                        showToast("Leave request rejected!", "success");
                     } catch (e) {
                         console.error("Error rejecting leave:", e);
                         showToast("Failed to reject leave. Check console.", "error");
@@ -2469,7 +2198,10 @@
             });
         }
 
-        // Handle Delete Leave (for non-pending leaves, or if admin wants to remove any)
+        /**
+         * Handles deleting a leave record.
+         * @param {Event} event - The click event.
+         */
         async function handleDeleteLeave(event) {
             const docId = event.target.dataset.id;
             showConfirmDialog("Are you sure you want to DELETE this leave record? This action cannot be undone.", async (confirmed) => {
@@ -2478,10 +2210,9 @@
                         const leaveDocRef = doc(db, `artifacts/${appId}/public/data/leaveRecords`, docId);
                         await deleteDoc(leaveDocRef);
                         showToast("Leave record deleted!", "success");
-                    }
-                    catch (e) {
+                    } catch (e) {
                         console.error("Error deleting leave record:", e);
-                        showToast("Failed to delete leave record. Check console.", "error");
+                        showToast("Failed to delete leave record.", "error");
                     }
                 } else {
                     showToast("Leave record deletion cancelled.", "info");
@@ -2489,10 +2220,10 @@
             });
         }
 
-        // Function to export leave data to CSV
-        if(exportLeaveCsvBtn) {
+        // Event listener for export leave CSV button
+        if (exportLeaveCsvBtn) {
             exportLeaveCsvBtn.addEventListener('click', () => {
-                if (!isAdminLoggedIn || !isAdminMode) { 
+                if (!isAdminLoggedIn || !isAdminMode) {
                     showToast("You must be logged in as an Admin and Admin Mode must be enabled to export leave data.", "error");
                     return;
                 }
@@ -2501,8 +2232,7 @@
                     return;
                 }
 
-                let csvContent = "Employee Name,Employee ID,Leave Type,Start Date,End Date,Days Requested,Status,Requested At,Approved By,Approved At\n"; 
-
+                let csvContent = "Employee Name,Employee ID,Leave Type,Start Date,End Date,Days Requested,Status,Requested At,Approved By,Approved At\n";
                 leaveRecords.forEach(record => {
                     const row = [
                         record.memberName,
@@ -2515,7 +2245,7 @@
                         new Date(record.requestedAt).toLocaleString('en-GB'),
                         record.approvedBy || 'N/A',
                         record.approvedAt ? new Date(record.approvedAt).toLocaleString('en-GB') : 'N/A',
-                    ].map(item => `"${item}"`).join(','); 
+                    ].map(item => `"${item}"`).join(',');
                     csvContent += row + "\n";
                 });
 
@@ -2530,16 +2260,15 @@
             });
         }
 
-        // Calculate Leave Balances (still calculates but doesn't enforce limits)
+        /**
+         * Calculates and updates the leave balances for all employees.
+         */
         function calculateLeaveBalances() {
             const balances = {};
-
-            // Initialize balances for all known employees
             predefinedTeamMembers.forEach(member => {
-                balances[member.id] = { totalLeaveTaken: 0 }; // Initialize with totalLeaveTaken
+                balances[member.id] = { totalLeaveTaken: 0 };
             });
 
-            // Sum up approved leave days for totalLeaveTaken
             leaveRecords.forEach(record => {
                 if (record.status === 'Approved') {
                     if (balances[record.employeeId] !== undefined) {
@@ -2547,41 +2276,40 @@
                     }
                 }
             });
-            leaveBalances = balances; // Assign to global 'leaveBalances'
-            updateLeaveBalancesDisplay(); // Call display function after calculation
+            leaveBalances = balances;
+            updateLeaveBalancesDisplay();
         }
 
-        // --- Dashboard Metrics Functions ---
+        /**
+         * Updates the dashboard metrics (total employees, active logins, total overtime).
+         */
         function updateDashboardMetrics() {
             if (!isAdminLoggedIn || !isAdminMode) {
-                if(dashboardOverviewSection) dashboardOverviewSection.classList.add('hidden');
+                if (dashboardOverviewSection) dashboardOverviewSection.classList.add('hidden');
                 return;
             } else {
-                if(dashboardOverviewSection) dashboardOverviewSection.classList.remove('hidden');
+                if (dashboardOverviewSection) dashboardOverviewSection.classList.remove('hidden');
             }
 
-            // Total Employees
             if (totalEmployeesCount) {
                 totalEmployeesCount.textContent = predefinedTeamMembers.length.toString();
             }
 
-            // Active Logins Today
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            today.setHours(0, 0, 0, 0); // Normalize today's date to start of day
+
             const activeLoginsTodaySet = new Set();
             extendedHoursEntries.forEach(entry => {
                 const entryDate = new Date(entry.date);
-                entryDate.setHours(0, 0, 0, 0);
-                // Check if the entry date (when the work was logged) is today
+                entryDate.setHours(0, 0, 0, 0); // Normalize entry date to start of day
                 if (entryDate.getTime() === today.getTime()) {
                     activeLoginsTodaySet.add(entry.employeeId);
                 }
             });
             if (activeLoginsCount) {
-                activeLoginsCount.textContent = activeLoginsTodaySet.size.toString(); // Corrected: use .size and assign to activeLoginsCount DOM element
+                activeLoginsCount.textContent = activeLoginsTodaySet.size.toString();
             }
 
-            // Total Overtime Hours This Month
             const currentMonth = today.getMonth();
             const currentYear = today.getFullYear();
             let totalOvertime = 0;
@@ -2596,15 +2324,17 @@
             }
         }
 
-        // Function to prevent Enter key from submitting forms implicitly
+        /**
+         * Prevents the default action for the Enter key on input fields.
+         * @param {KeyboardEvent} event - The keyboard event.
+         */
         function preventEnterKeyDefault(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                // No explicit focus movement, just prevent default submission behavior
             }
         }
 
-        // Attach preventEnterKeyDefault to relevant input fields
+        // Add event listeners to prevent Enter key default behavior on relevant inputs
         if (adminPinInput) adminPinInput.addEventListener('keydown', preventEnterKeyDefault);
         if (newEmployeeIdInput) newEmployeeIdInput.addEventListener('keydown', preventEnterKeyDefault);
         if (newEmployeeNameInput) newEmployeeNameInput.addEventListener('keydown', preventEnterKeyDefault);
@@ -2612,44 +2342,42 @@
         if (leaveEndDateInput) leaveEndDateInput.addEventListener('keydown', preventEnterKeyDefault);
         if (filterStartDateInput) filterStartDateInput.addEventListener('keydown', preventEnterKeyDefault);
         if (filterEndDateInput) filterEndDateInput.addEventListener('keydown', preventEnterKeyDefault);
-        // New PIN change fields
         if (oldPinInput) oldPinInput.addEventListener('keydown', preventEnterKeyDefault);
         if (newPinInput) newPinInput.addEventListener('keydown', preventEnterKeyDefault);
         if (confirmNewPinInput) confirmNewPinInput.addEventListener('keydown', preventEnterKeyDefault);
-        // Edit employee form fields
         if (editEmployeeID) editEmployeeID.addEventListener('keydown', preventEnterKeyDefault);
         if (editEmployeeName) editEmployeeName.addEventListener('keydown', preventEnterKeyDefault);
 
-
-        // Initialize Firebase and set up Firestore listener
+        // Initialize Firebase and set up listeners on DOMContentLoaded
         document.addEventListener('DOMContentLoaded', () => {
-            loadLocalState(); // Load local preferences (including admin state)
+            loadLocalState(); // Load local state first
 
+            // Check Firebase configuration
             if (firebaseConfig.apiKey === "" || firebaseConfig.projectId === "" || !firebaseConfig.apiKey || !firebaseConfig.projectId) {
                 console.error("Firebase Configuration Error: Placeholder API Key or Project ID found, or config is incomplete. Please update firebaseConfig with your actual Firebase project details from the Firebase Console.");
-                showVisualError("Firebase Setup Error: Your Firebase API Key or Project ID is incorrect. Please obtain the correct details from your Firebase Console and update 'firebaseConfig' in the code."); // Use visual error banner
-                return; 
+                showVisualError("Firebase Setup Error: Your Firebase API Key or Project ID is incorrect. Please obtain the correct details from your Firebase Console and update 'firebaseConfig' in the code.");
+                return;
             }
+
             try {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
                 console.log("Firebase App, Firestore, and Auth initialized with provided config.");
 
+                // Listen for authentication state changes
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         currentUserId = user.uid;
                         console.log("Firebase authenticated. User ID:", currentUserId);
-                        
-                        // Call seed function after auth is ready and db is available
-                        await seedTeamMembersIfEmpty(); 
-                        setupFirestoreListeners(); 
+                        await seedTeamMembersIfEmpty(); // Seed team members if collection is empty
+                        setupFirestoreListeners(); // Set up real-time listeners
                     } else {
                         currentUserId = null;
                         adminStatus.textContent = "Not logged in as Admin.";
                         console.log("Firebase: No user signed in. Attempting anonymous sign-in.");
                         try {
-                            await signInAnonymously(auth); 
+                            await signInAnonymously(auth);
                             console.log("Signed in anonymously.");
                         } catch (error) {
                             console.error("Firebase Auth Error during anonymous sign-in:", error);
@@ -2660,9 +2388,9 @@
                             }
                         }
                     }
-                    updateAdminUI(); 
-                    saveLocalState(); // Save the new auth state
-                    updateDashboardMetrics(); // Initial dashboard update after auth state is known
+                    updateAdminUI();
+                    saveLocalState();
+                    updateDashboardMetrics();
                 }, (error) => {
                     console.error("Error in onAuthStateChanged:", error);
                     showVisualError("Firebase authentication state error. Check console.");
@@ -2673,7 +2401,9 @@
             }
         });
 
-        // Combined Firestore Real-time Listener Function
+        /**
+         * Sets up real-time Firestore listeners for various collections.
+         */
         function setupFirestoreListeners() {
             if (!db) {
                 console.warn("Firestore instance is not available. Cannot set up listeners.");
@@ -2684,17 +2414,16 @@
                 return;
             }
 
-            // Listener for admin settings (including PIN)
+            // Listener for admin configuration (PIN)
             console.log(`Setting up Firestore listener for adminConfig: artifacts/${appId}/public/data/settings/adminConfig`);
             const adminConfigRef = doc(db, `artifacts/${appId}/public/data/settings`, 'adminConfig');
             onSnapshot(adminConfigRef, async (docSnapshot) => {
                 if (docSnapshot.exists()) {
                     const data = docSnapshot.data();
-                    storedAdminPin = data.adminPin || "123456"; // Update stored PIN from Firestore
+                    storedAdminPin = data.adminPin || "123456";
                     console.log("Admin PIN loaded from Firestore:", storedAdminPin);
                 } else {
                     console.log("adminConfig document does not exist. Creating with default PIN.");
-                    // Create the document with a default PIN if it doesn't exist
                     try {
                         await setDoc(adminConfigRef, { adminPin: "123456", createdAt: new Date().toISOString() });
                         storedAdminPin = "123456";
@@ -2709,7 +2438,7 @@
                 showToast("Error loading admin settings from database. Check console for details.", "error");
             });
 
-
+            // Listener for extended hours entries
             console.log(`Setting up Firestore listener for extendedHours collection: artifacts/${appId}/public/data/extendedHours`);
             const hoursQuery = query(collection(db, `artifacts/${appId}/public/data/extendedHours`), orderBy("createdAt", "asc"));
             onSnapshot(hoursQuery, (snapshot) => {
@@ -2718,40 +2447,42 @@
                 snapshot.forEach((doc) => {
                     const data = doc.data();
                     fetchedEntries.push({
-                        id: doc.id, 
-                        employeeId: data.employeeId, 
+                        id: doc.id,
+                        employeeId: data.employeeId,
                         memberName: data.memberName,
-                        date: data.date, 
+                        date: data.date,
                         startTime: data.startTime,
                         endTime: data.endTime,
-                        totalHours: parseFloat(data.totalHours || 0), 
-                        overtimeHours: parseFloat(data.overtimeHours || 0), 
+                        totalHours: parseFloat(data.totalHours || 0),
+                        overtimeHours: parseFloat(data.overtimeHours || 0),
                         createdAt: data.createdAt
                     });
                 });
+                // Sort entries by date and then by start time
                 fetchedEntries.sort((a, b) => {
                     const dateA = new Date(a.date);
                     const dateB = new Date(b.date);
                     if (dateA.getTime() !== dateB.getTime()) {
                         return dateA - dateB;
                     }
-                    const timeA = a.startTime.split(':').map(Number);
+                    // If dates are the same, sort by start time
+                    const timeA = a.startTime.split(':').map(Number); // [hour, minute]
                     const timeB = b.startTime.split(':').map(Number);
-                    if (timeA[0] !== timeB[0]) { 
+                    if (timeA[0] !== timeB[0]) {
                         return timeA[0] - timeB[0];
                     }
-                    return timeA[1] - timeB[1]; 
+                    return timeA[1] - timeB[1];
                 });
-
-                extendedHoursEntries = fetchedEntries; 
+                extendedHoursEntries = fetchedEntries;
                 console.log("Extended hours entries updated from Firestore:", extendedHoursEntries);
-                applyFilter(); 
-                updateDashboardMetrics(); // Update dashboard when extended hours data changes
+                applyFilter(); // Call applyFilter here to ensure initial rendering with data
+                updateDashboardMetrics();
             }, (error) => {
                 console.error("Error listening to extendedHours Firestore:", error);
                 showToast("Error loading real-time data from database. Check console for details.", "error");
             });
 
+            // Listener for team members
             console.log(`Setting up Firestore listener for teamMembers collection: artifacts/${appId}/public/data/teamMembers`);
             const teamMembersQuery = query(collection(db, `artifacts/${appId}/public/data/teamMembers`), orderBy("createdAt", "asc"));
             onSnapshot(teamMembersQuery, (snapshot) => {
@@ -2759,26 +2490,23 @@
                 const fetchedTeamMembers = [];
                 snapshot.forEach((doc) => {
                     const data = doc.data();
-                    fetchedTeamMembers.push({
-                        docId: doc.id, // Store Firestore document ID
-                        id: data.id,   
-                        name: data.name, 
-                        createdAt: data.createdAt
-                    });
+                    fetchedTeamMembers.push({ docId: doc.id, id: data.id, name: data.name, createdAt: data.createdAt });
                 });
-                predefinedTeamMembers = fetchedTeamMembers; 
+                predefinedTeamMembers = fetchedTeamMembers;
                 console.log("Predefined team members updated from Firestore:", predefinedTeamMembers);
-                populateEmployeeDropdown(); // Re-populate dropdown when team members update
+                populateEmployeeDropdown();
+                // Re-render manage employees table if modal is open
                 if (!adminSettingsModalBackdrop.classList.contains('hidden')) {
-                    renderManageEmployeesTable(); 
+                    renderManageEmployeesTable();
                 }
-                calculateLeaveBalances(); // Recalculate balances when team members change
-                updateDashboardMetrics(); // Update dashboard when team members data changes
+                calculateLeaveBalances(); // Recalculate leave balances if team members change
+                updateDashboardMetrics();
             }, (error) => {
                 console.error("Error listening to teamMembers Firestore:", error);
                 showToast("Error loading team members from database. Check console for details.", "error");
             });
 
+            // Listener for leave records
             console.log(`Setting up Firestore listener for leaveRecords collection: artifacts/${appId}/public/data/leaveRecords`);
             const leaveRecordsQuery = query(collection(db, `artifacts/${appId}/public/data/leaveRecords`), orderBy("requestedAt", "asc"));
             onSnapshot(leaveRecordsQuery, (snapshot) => {
